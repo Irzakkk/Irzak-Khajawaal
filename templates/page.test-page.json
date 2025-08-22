@@ -54,48 +54,48 @@
           "type": "product",
           "settings": {
             "product": "black-leather-bag",
-            "hotspot_left": 8,
-            "hotspot_top": 5
+            "hotspot_left": 50,
+            "hotspot_top": 70
           }
         },
         "product_yDUicX": {
           "type": "product",
           "settings": {
             "product": "blue-silk-tuxedo",
-            "hotspot_left": 5,
-            "hotspot_top": 5
+            "hotspot_left": 80,
+            "hotspot_top": 50
           }
         },
         "product_hGWqNb": {
           "type": "product",
           "settings": {
             "product": "chequered-red-shirt",
-            "hotspot_left": 5,
-            "hotspot_top": 5
+            "hotspot_left": 60,
+            "hotspot_top": 20
           }
         },
         "product_mdCapR": {
           "type": "product",
           "settings": {
             "product": "classic-leather-jacket",
-            "hotspot_left": 5,
-            "hotspot_top": 5
+            "hotspot_left": 75,
+            "hotspot_top": 15
           }
         },
         "product_EyTpLK": {
           "type": "product",
           "settings": {
             "product": "classic-varsity-top",
-            "hotspot_left": 5,
-            "hotspot_top": 5
+            "hotspot_left": 50,
+            "hotspot_top": 30
           }
         },
         "product_WdzEnV": {
           "type": "product",
           "settings": {
             "product": "dark-denim-top",
-            "hotspot_left": 5,
-            "hotspot_top": 5
+            "hotspot_left": 70,
+            "hotspot_top": 40
           }
         }
       },
@@ -109,7 +109,9 @@
       ],
       "name": "Hotspot Products",
       "settings": {
-        "heading": "Tisso vision in the wild"
+        "heading": "Tisso vision in the wild",
+        "columns_desktop": 3,
+        "columns_mobile": 2
       }
     }
   },
