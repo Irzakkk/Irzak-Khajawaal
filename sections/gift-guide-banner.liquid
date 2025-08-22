@@ -295,81 +295,128 @@
     <div class="gg-strip__inner">{{ section.settings.bottom_strip_text }}</div>
   </div>
 
-  {%- javascript -%}
-    (function() {
-      var hid = '{{ section.id }}';
-      var hamburgerId = 'hbHamburger-{{ section.id }}';
-      var menuId = 'hbMobileMenu-{{ section.id }}';
-      var iconId = 'hbHamburgerIcon-{{ section.id }}';
+{%- javascript -%}
+  (function() {
+    var hamburgerId = 'hbHamburger-{{ section.id }}';
+    var menuId = 'hbMobileMenu-{{ section.id }}';
+    var iconId = 'hbHamburgerIcon-{{ section.id }}';
+    var initializedFlag = 'data-gift-hamburger-initialized-{{ section.id }}';
 
-      function initGiftHeader() {
-        var hamburger = document.getElementById(hamburgerId);
-        var menu = document.getElementById(menuId);
-        var icon = document.getElementById(iconId);
-        if (!hamburger || !menu) return;
+    function safeGet(id) {
+      try { return document.getElementById(id); } catch (e) { return null; }
+    }
 
-        // ensure clickable and above other elements
-        try {
-          hamburger.style.pointerEvents = 'auto';
-          hamburger.style.zIndex = '9999';
-        } catch(e){}
+    function lockScroll(lock) {
+      try {
+        document.documentElement.style.overflow = lock ? 'hidden' : '';
+        document.body.style.overflow = lock ? 'hidden' : '';
+      } catch (e) {}
+    }
 
-        function openMenu() {
-          menu.classList.add('open');
-          hamburger.classList.add('is-open');
-          hamburger.setAttribute('aria-expanded','true');
-          menu.setAttribute('aria-hidden','false');
-          if (icon) icon.textContent = '✕';
-          // lock scroll
-          document.documentElement.style.overflow = 'hidden';
-          document.body.style.overflow = 'hidden';
-        }
-        function closeMenu() {
-          menu.classList.remove('open');
-          hamburger.classList.remove('is-open');
-          hamburger.setAttribute('aria-expanded','false');
-          menu.setAttribute('aria-hidden','true');
-          if (icon) icon.textContent = '☰';
-          document.documentElement.style.overflow = '';
-          document.body.style.overflow = '';
-        }
+    function bindOnce(hamburger, menu, icon) {
+      if (!hamburger || !menu) return;
 
-        // Toggle
-        hamburger.addEventListener('click', function(e) {
-          e.preventDefault();
-          if (menu.classList.contains('open')) closeMenu(); else openMenu();
-        });
+      // avoid double-binding across theme editor reloads
+      if (hamburger.getAttribute(initializedFlag) === '1') return;
+      hamburger.setAttribute(initializedFlag, '1');
 
-        // Close when clicking a link inside menu (including CHOOSE GIFT)
-        menu.addEventListener('click', function(e) {
-          var a = e.target.closest && e.target.closest('a');
-          if (a) {
-            closeMenu();
-          }
-        });
+      // ensure clickable even if overlapped
+      try {
+        hamburger.style.pointerEvents = 'auto';
+        hamburger.style.zIndex = '99999';
+      } catch (e) {}
 
-        // Close on ESC
-        document.addEventListener('keydown', function(e) {
-          if (e.key === 'Escape' && menu.classList.contains('open')) {
-            closeMenu();
-          }
-        });
-
-        // Close on resize to desktop
-        window.addEventListener('resize', function() {
-          if (window.innerWidth >= 990 && menu.classList.contains('open')) {
-            closeMenu();
-          }
-        });
+      function openMenu() {
+        menu.classList.add('open');
+        hamburger.classList.add('is-open');
+        hamburger.setAttribute('aria-expanded','true');
+        menu.setAttribute('aria-hidden','false');
+        if (icon) icon.textContent = '✕';
+        lockScroll(true);
+      }
+      function closeMenu() {
+        menu.classList.remove('open');
+        hamburger.classList.remove('is-open');
+        hamburger.setAttribute('aria-expanded','false');
+        menu.setAttribute('aria-hidden','true');
+        if (icon) icon.textContent = '☰';
+        lockScroll(false);
+      }
+      function toggleMenu(e) {
+        if (e) e.preventDefault();
+        if (menu.classList.contains('open')) closeMenu(); else openMenu();
       }
 
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initGiftHeader);
-      } else {
-        initGiftHeader();
+      // Use click and touchstart (touchstart for faster mobile response)
+      hamburger.addEventListener('click', toggleMenu, { passive: false });
+      hamburger.addEventListener('touchstart', function(e){
+        // prevent double-firing: touchstart then click
+        e.preventDefault();
+        toggleMenu();
+      }, { passive: false });
+
+      // close when clicking a link inside menu
+      menu.addEventListener('click', function(e) {
+        var a = e.target.closest && e.target.closest('a');
+        if (a) closeMenu();
+      });
+
+      // close on ESC
+      document.addEventListener('keydown', function(e) {
+        if ((e.key === 'Escape' || e.key === 'Esc') && menu.classList.contains('open')) closeMenu();
+      });
+
+      // close on resize >= desktop
+      window.addEventListener('resize', function() {
+        if (window.innerWidth >= 990 && menu.classList.contains('open')) closeMenu();
+      });
+    }
+
+    function initOnce() {
+      var hamburger = safeGet(hamburgerId);
+      var menu = safeGet(menuId);
+      var icon = safeGet(iconId);
+
+      if (hamburger && menu) {
+        bindOnce(hamburger, menu, icon);
+        return true;
       }
-    })();
-  {%- endjavascript -%}
+      return false;
+    }
+
+    // Try immediate init
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        if (!initOnce()) observeForElements();
+      });
+    } else {
+      if (!initOnce()) observeForElements();
+    }
+
+    // MutationObserver fallback for editors that inject elements later
+    function observeForElements() {
+      var observer;
+      var attempts = 0;
+      observer = new MutationObserver(function(mutations) {
+        if (initOnce() || attempts > 40) { // stop after ~40 ticks (~2s)
+          try { observer.disconnect(); } catch(e){}
+          return;
+        }
+        attempts++;
+      });
+      try {
+        observer.observe(document.documentElement || document, { childList: true, subtree: true });
+      } catch (e) {
+        // final fallback: interval
+        var interval = setInterval(function() {
+          if (initOnce()) clearInterval(interval);
+        }, 150);
+        setTimeout(function(){ clearInterval(interval); }, 3000);
+      }
+    }
+  })();
+{%- endjavascript -%}
+
 
   {%- schema -%}
   {
