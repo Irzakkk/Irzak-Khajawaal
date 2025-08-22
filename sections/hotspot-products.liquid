@@ -203,19 +203,35 @@
                   {% assign size_option_index = 1 %}
                 {% endif %}
                 <span class="label">Color</span>
+                {% assign seen_colors = '' | split: ',' %}
                 <div class="hp-color-wrap" data-color-index="{{ color_option_index }}">
-                  {% for color in prod.options[color_option_index].values %}
-                    <button type="button" class="hp-color" data-option-index="{{ color_option_index }}" data-option-value="{{ color | escape }}" aria-pressed="false">
-                      {{ color }}
-                    </button>
+                  {% for var in prod.variants %}
+                    {% assign raw_color_val = var.options[color_option_index] | default: '' %}
+                    {% assign color_key = raw_color_val | strip | downcase %}
+                    {% if color_key != '' %}
+                      {% unless seen_colors contains color_key %}
+                        {% assign seen_colors = seen_colors | push: color_key %}
+                        <button type="button" class="hp-color" data-option-index="{{ color_option_index }}" data-option-value="{{ raw_color_val | escape }}" aria-pressed="false">
+                          {{ raw_color_val }}
+                        </button>
+                      {% endunless %}
+                    {% endif %}
                   {% endfor %}
                 </div>
                 <span class="label">Size</span>
+                {% assign seen_sizes = '' | split: ',' %}
                 <div style="display:block;width:100%;">
                   <select class="hp-size" data-size-index="{{ size_option_index }}">
                     <option value="">Choose your size</option>
-                    {% for size in prod.options[size_option_index].values %}
-                      <option value="{{ size | escape }}">{{ size }}</option>
+                    {% for var in prod.variants %}
+                      {% assign size_val = var.options[size_option_index] | default: '' %}
+                      {% assign size_key = size_val | strip | downcase %}
+                      {% if size_key != '' %}
+                        {% unless seen_sizes contains size_key %}
+                          {% assign seen_sizes = seen_sizes | push: size_key %}
+                          <option value="{{ size_val | escape }}">{{ size_val }}</option>
+                        {% endunless %}
+                      {% endif %}
                     {% endfor %}
                   </select>
                 </div>
