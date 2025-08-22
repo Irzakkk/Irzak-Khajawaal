@@ -53,15 +53,19 @@
     .hp-desc { font-size:13px; color:#333; max-height:140px; overflow:auto; margin-top:10px; }
 
     /* Bottom controls */
-    .hp-controls { padding:0 18px 18px; display:flex; flex-direction:column; gap:12px; }
-    .hp-color-wrap { display:flex; border:1px solid #ddd; background:#fff; min-height:46px; overflow:hidden; }
-    .hp-color { flex:1; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:700; border:0; }
-    .hp-color + .hp-color { border-left:1px solid #ddd; }
-    .hp-color.selected { border-left:6px solid #111; background:#fff; }
+    .hp-controls { padding:12px 18px; display:flex; flex-direction:column; gap:16px; }
 
-    .hp-size { width:100%; padding:12px; border:1px solid #ddd; font-size:14px; }
-    .hp-add { background:#000; color:#fff; padding:14px; border:0; font-weight:700; text-align:center; display:flex; justify-content:center; gap:6px; }
+    /* Color boxes */
+    .hp-color-wrap { display:flex; gap:6px; }
+    .hp-color { padding:8px 14px; cursor:pointer; font-weight:700; border:1px solid #ddd; border-radius:6px; text-align:center; flex:1; background:#fff; transition: all .2s; }
+    .hp-color.selected { border:2px solid #111; background:#f0f0f0; }
 
+    /* Size dropdown */
+    .hp-size { width:100%; padding:10px 12px; border-radius:6px; border:1px solid #ddd; font-size:14px; }
+
+    /* Add to cart button */
+    .hp-add { background:#000; color:#fff; padding:14px 0; border:0; font-weight:700; text-align:center; display:flex; justify-content:center; align-items:center; gap:6px; border-radius:6px; }
+    .hp-add::after { content:"→"; font-weight:700; }
   </style>
 
   <h2 class="hp-heading">{{ section.settings.heading }}</h2>
@@ -120,7 +124,7 @@
             <!-- Bottom: Controls -->
             {% if prod %}
             <div class="hp-controls">
-              <!-- Colors -->
+              <!-- Colors as box switcher -->
               {% assign seen_colors = '' | split: ',' %}
               <div class="hp-color-wrap">
                 {% for var in prod.variants %}
@@ -132,7 +136,7 @@
                 {% endfor %}
               </div>
 
-              <!-- Sizes -->
+              <!-- Sizes as dropdown -->
               {% assign seen_sizes = '' | split: ',' %}
               <select class="hp-size">
                 <option value="">Choose your size</option>
@@ -161,40 +165,40 @@
   </div>
 
   <script>
-  (function(){
-    var sectionRoot = document.getElementById('hotspot-products-{{ section.id }}');
-    if(!sectionRoot) return;
+    (function(){
+      var sectionRoot = document.getElementById('hotspot-products-{{ section.id }}');
+      if(!sectionRoot) return;
 
-    // Open modal
-    sectionRoot.addEventListener('click', function(e){
-      var btn = e.target.closest('.hp-hotspot'); if(!btn) return;
-      e.preventDefault();
-      var modal = document.getElementById(btn.getAttribute('data-open-modal-id'));
-      if(modal){ modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
-    });
-
-    // Close modal
-    sectionRoot.addEventListener('click', function(e){
-      var close = e.target.closest('[data-close-modal-id]');
-      if(close){ var modal = document.getElementById(close.getAttribute('data-close-modal-id')); if(modal){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); document.body.style.overflow=''; } }
-      var overlay = e.target.closest('.hp-modal.open');
-      if(overlay && e.target === overlay){ overlay.classList.remove('open'); overlay.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
-    });
-
-    document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ sectionRoot.querySelectorAll('.hp-modal.open').forEach(function(m){ m.classList.remove('open'); m.setAttribute('aria-hidden','true'); }); document.body.style.overflow=''; } });
-
-    // Color selection
-    sectionRoot.querySelectorAll('.hp-color-wrap').forEach(function(wrap){
-      var btns = wrap.querySelectorAll('.hp-color');
-      btns.forEach(function(btn){
-        btn.addEventListener('click', function(){
-          btns.forEach(function(b){ b.classList.remove('selected'); });
-          btn.classList.add('selected');
-        });
+      // Open modal
+      sectionRoot.addEventListener('click', function(e){
+        var btn = e.target.closest('.hp-hotspot'); if(!btn) return;
+        e.preventDefault();
+        var modal = document.getElementById(btn.getAttribute('data-open-modal-id'));
+        if(modal){ modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
       });
-      if(btns[0]) btns[0].classList.add('selected'); // default
-    });
-  })();
-  </script>
 
+      // Close modal
+      sectionRoot.addEventListener('click', function(e){
+        var close = e.target.closest('[data-close-modal-id]');
+        if(close){ var modal = document.getElementById(close.getAttribute('data-close-modal-id')); if(modal){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); document.body.style.overflow=''; } }
+        var overlay = e.target.closest('.hp-modal.open');
+        if(overlay && e.target === overlay){ overlay.classList.remove('open'); overlay.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
+      });
+
+      document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ sectionRoot.querySelectorAll('.hp-modal.open').forEach(function(m){ m.classList.remove('open'); m.setAttribute('aria-hidden','true'); }); document.body.style.overflow=''; } });
+
+      // Color selection
+      sectionRoot.querySelectorAll('.hp-color-wrap').forEach(function(wrap){
+        var btns = wrap.querySelectorAll('.hp-color');
+        btns.forEach(function(btn){
+          btn.addEventListener('click', function(){
+            btns.forEach(function(b){ b.classList.remove('selected'); });
+            btn.classList.add('selected');
+          });
+        });
+        if(btns[0]) btns[0].classList.add('selected'); // default
+      });
+    })();
+  </script>
 </section>
+

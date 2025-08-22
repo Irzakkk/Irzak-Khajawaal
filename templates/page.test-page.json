@@ -54,7 +54,7 @@
           "type": "product",
           "settings": {
             "product": "black-leather-bag",
-            "hotspot_left": 80,
+            "hotspot_left": 8,
             "hotspot_top": 5
           }
         },
@@ -109,9 +109,7 @@
       ],
       "name": "Hotspot Products",
       "settings": {
-        "heading": "Tisso vision in the wild",
-        "columns_desktop": 3,
-        "columns_mobile": 2
+        "heading": "Tisso vision in the wild"
       }
     }
   },
