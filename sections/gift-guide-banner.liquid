@@ -53,14 +53,17 @@
     }
 
     #gift-guide-{{ section.id }} .hb-right{ min-width:170px; display:flex; justify-content:flex-end; }
+
+    /* CHOOSE GIFT (desktop) — fixed color, no hover effect */
     #gift-guide-{{ section.id }} .hb-choose{
       display:inline-flex; align-items:center; gap:10px; padding:12px 22px; border-radius:8px;
       background:var(--gg-yellow); color:#111; font-weight:700; text-decoration:none;
       border:1px solid rgba(0,0,0,0.06);
-      transition: background .18s ease, color .18s ease, transform .12s ease, box-shadow .12s ease;
       white-space:nowrap;
+      transition:none;
     }
-    #gift-guide-{{ section.id }} .hb-choose:hover{ background:var(--gg-black); color:var(--gg-yellow); transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.12); }
+    #gift-guide-{{ section.id }} .hb-choose:hover,
+    #gift-guide-{{ section.id }} .hb-choose:focus{ background:var(--gg-yellow); color:#111; box-shadow:none; transform:none; }
 
     /* Hamburger (mobile) - left */
     #gift-guide-{{ section.id }} .hb-hamburger{
@@ -68,20 +71,17 @@
       padding:8px; width:44px; height:44px; z-index:9999; line-height:1;
       transition: transform .18s ease;
     }
-    #gift-guide-{{ section.id }} .hb-hamburger.is-open{ transform:rotate(0.0001deg); } /* placeholder for subtle state */
+    #gift-guide-{{ section.id }} .hb-hamburger.is-open{ transform:rotate(0.0001deg); }
 
     /* ---------- MOBILE OVERLAY MENU (animated) ---------- */
     #gift-guide-{{ section.id }} .hb-mobile-menu{
-      /* backdrop layer */
       position:fixed; inset:0; z-index:9998;
       background: {{ section.settings.header_bg | default: '#ffffff' }};
-      display:block; /* keep in DOM for animation; we control visibility via opacity & pointer-events */
-      opacity:0; pointer-events:none;
+      display:block; opacity:0; pointer-events:none;
       transition: opacity .22s ease;
       overflow-y:auto; -webkit-overflow-scrolling:touch;
     }
     #gift-guide-{{ section.id }} .hb-mobile-menu::after{
-      /* soft bottom shadow like screenshot */
       content:''; position:fixed; left:0; right:0; top:64px; height:18px;
       box-shadow:0 10px 30px rgba(0,0,0,.12);
       pointer-events:none; opacity:0; transition:opacity .22s ease;
@@ -89,7 +89,6 @@
     #gift-guide-{{ section.id }} .hb-mobile-menu.open{ opacity:1; pointer-events:auto; }
     #gift-guide-{{ section.id }} .hb-mobile-menu.open::after{ opacity:1; }
 
-    /* the sliding panel (drops from top slightly) */
     #gift-guide-{{ section.id }} .hb-mobile-panel{
       max-width:var(--gg-max-w); margin:0 auto; padding:16px 20px 28px;
       transform:translateY(-14px); opacity:0;
@@ -103,7 +102,6 @@
       display:flex; flex-direction:column; align-items:center; gap:16px;
     }
 
-    /* Logo inside drawer */
     #gift-guide-{{ section.id }} .hb-mobile-logo{
       font-size:22px; font-weight:800; margin-top:6px; margin-bottom:8px;
       text-align:center; color:var(--gg-text); width:100%;
@@ -114,13 +112,17 @@
       padding:0 10px; line-height:1.35;
     }
 
+    /* CHOOSE GIFT (mobile) — fixed color, arrow forced on same line */
     #gift-guide-{{ section.id }} .hb-choose-mobile{
-      display:inline-block; width:100%; max-width:420px; text-align:center;
+      display:inline-flex; align-items:center; justify-content:center; gap:12px;
+      width:100%; max-width:520px;
       padding:14px 18px; border-radius:8px; background:var(--gg-yellow); color:#111;
       font-weight:700; text-decoration:none; border:1px solid rgba(0,0,0,0.06);
-      white-space:nowrap;
+      white-space:nowrap; flex-wrap:nowrap;
     }
-    #gift-guide-{{ section.id }} .hb-choose-mobile:hover{ background:var(--gg-black); color:var(--gg-yellow); }
+    #gift-guide-{{ section.id }} .hb-choose-mobile svg{ flex:0 0 auto; }
+    #gift-guide-{{ section.id }} .hb-choose-mobile:hover,
+    #gift-guide-{{ section.id }} .hb-choose-mobile:focus{ background:var(--gg-yellow); color:#111; box-shadow:none; transform:none; }
 
     /* ---------- ANNOUNCEMENT ---------- */
     #gift-guide-{{ section.id }} .gg-announcement{ width:100%; background: {{ section.settings.announcement_bg | default: '#efefef' }}; }
@@ -135,11 +137,12 @@
     #gift-guide-{{ section.id }} .gg-subtext{ font-size:clamp(14px,1.5vw,18px); line-height:1.6; max-width:620px; color:var(--gg-text); margin:0; }
     #gift-guide-{{ section.id }} .gg-subtext--mobile{ display:none; }
 
-    /* CTA single-line with inline arrow */
+    /* CTA shared bits */
     #gift-guide-{{ section.id }} .gg-cta,
     #gift-guide-{{ section.id }} .gg-cta--mobile{
       white-space:nowrap; display:inline-flex; align-items:center; gap:10px;
     }
+    /* Desktop CTA (keeps hover) */
     #gift-guide-{{ section.id }} .gg-cta{
       margin-top:20px; background:var(--gg-black); color:#fff; text-decoration:none;
       padding:16px 40px; border-radius:10px; border:2px solid var(--gg-black); font-weight:700;
@@ -147,12 +150,15 @@
     }
     #gift-guide-{{ section.id }} .gg-cta:hover{ transform:translateY(-2px); box-shadow:0 10px 28px rgba(0,0,0,.18); }
 
+    /* Mobile CTA — NO hover effects */
     #gift-guide-{{ section.id }} .gg-cta--mobile{
       position:absolute; left:50%; bottom:20px; transform:translateX(-50%); display:none;
       padding:16px 56px; border-radius:12px; background:var(--gg-black); color:#fff; font-weight:700;
       text-decoration:none; border:2px solid var(--gg-black);
+      transition:none;
     }
-    #gift-guide-{{ section.id }} .gg-cta--mobile:hover{ transform:none; box-shadow:none; }
+    #gift-guide-{{ section.id }} .gg-cta--mobile:hover,
+    #gift-guide-{{ section.id }} .gg-cta--mobile:focus{ background:var(--gg-black); color:#fff; box-shadow:none; transform:translateX(-50%); }
 
     /* hero media */
     #gift-guide-{{ section.id }} .gg-hero{ position:relative; margin:0 auto; padding:0 16px 0; }
@@ -192,10 +198,10 @@
       #gift-guide-{{ section.id }} .gg-subtext--mobile{ display:block; margin-bottom:6px; }
 
       #gift-guide-{{ section.id }} .gg-hero__media{ height:420px; }
-      #gift-guide-{{ section.id }} .gg-cta{ display:none; }
+      #gift-guide-{{ section.id }} .gg-cta{ display:none; } /* desktop CTA hidden */
       #gift-guide-{{ section.id }} .gg-cta--mobile{ display:inline-flex; }
 
-      /* bottom strip switch to mobile content */
+      /* bottom strip: use mobile text */
       #gift-guide-{{ section.id }} .gg-strip__inner--desktop{ display:none; }
       #gift-guide-{{ section.id }} .gg-strip__inner--mobile{ display:block; }
     }
@@ -236,7 +242,7 @@
           {%- if section.settings.choose_btn_label != blank -%}
             <a class="hb-choose-mobile" href="{{ section.settings.choose_btn_link }}" aria-label="{{ section.settings.choose_btn_label }}">
               {{ section.settings.choose_btn_label }}
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" style="margin-left:8px"><path d="M6 12h12m0 0-5-5m5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M6 12h12m0 0-5-5m5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </a>
           {%- endif -%}
         </div>
@@ -333,7 +339,6 @@
     menu.setAttribute('aria-hidden','false');
     if (icon) icon.textContent = '✕';
     lockScroll(true);
-    // focus logo for a11y
     var logo = menu.querySelector('.hb-mobile-logo');
     if (logo && logo.focus) logo.focus({preventScroll:true});
   }
@@ -406,7 +411,7 @@
 
     { "type": "header", "content": "Bottom strip" },
     { "type": "text", "id": "bottom_strip_text", "label": "Bottom strip text (desktop)", "default": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL" },
-    { "type": "text", "id": "bottom_strip_text_mobile", "label": "Bottom strip text (mobile)", "default": "/" },
+    { "type": "text", "id": "bottom_strip_text_mobile", "label": "Bottom strip text (mobile)", "default": "SUSTAINABLE, ETHICALLY MADE CLOTHES" },
 
     { "type": "color", "id": "section_bg", "label": "Section background", "default": "#ffffff" }
   ],
