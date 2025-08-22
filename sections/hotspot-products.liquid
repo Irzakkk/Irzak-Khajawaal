@@ -63,79 +63,50 @@
 
 <section id="hotspot-products-{{ section.id }}" data-section-id="{{ section.id }}">
 <style>
-.hp-grid { display: grid; gap: 18px; grid-template-columns: repeat(3, 1fr); }
-@media (max-width: 989px) { .hp-grid { grid-template-columns: repeat(2, 1fr); } }
-.hp-card { position: relative; background: #fff; }
-.hp-image { width: 100%; padding-bottom: 100%; background: #f5f5f5; position: relative; }
-.hp-image img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-.hp-hotspot {
-  position: absolute; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.96);
-  border: 2px solid rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center;
-  cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; z-index: 20;
-}
-.hp-hotspot .hp-plus { font-size: 18px; font-weight: 700; color: #111; }
-.hp-modal {
-  position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
-  background: rgba(0,0,0,0.45); z-index: 2200; opacity: 0; transition: opacity 0.26s ease;
-  padding: 24px; overflow-y: auto;
-}
-.hp-modal.open { display: flex; opacity: 1; }
+/* Modal and popup styling matching your requested design */
 .hp-modal__card {
-  background: #fff; border-radius: 10px; box-shadow: 0 28px 90px rgba(0,0,0,.12); max-width: 370px; width: 100%;
-  min-height: 540px; padding: 0; display: flex; flex-direction: column; position: relative;
+  background: #fff; border-radius: 10px; max-width: 370px; width: 100%; min-height: 540px; padding: 0; display: flex; flex-direction: column; position: relative; box-shadow: 0 28px 90px rgba(0,0,0,.12);
 }
 .hp-modal-close {
-  position: absolute; top: 18px; right: 18px; background: transparent; border: none;
-  font-size: 25px; color: #111; font-weight: 500; cursor: pointer; z-index: 2000; line-height: 1;
+  position: absolute; top: 18px; right: 18px; background: transparent; border: none; font-size: 25px; color: #111; font-weight: 500; cursor: pointer; z-index: 2000; line-height: 1;
 }
 .hp-top {
-  display: grid; grid-template-columns: 120px 1fr; gap: 20px; padding: 22px 22px 0 22px;
-  align-items: start;
+  display: grid; grid-template-columns: 120px 1fr; gap: 20px; padding: 22px 22px 0 22px; align-items: start;
 }
 .imgwrap { background: #f6f6f6; min-height: 120px; display: flex; align-items: center; justify-content: center; }
 .imgwrap img { width: 110px; height: 110px; object-fit: cover; display: block; }
-.hp-title { font-size: 18px; font-weight: 600; margin: 0 0 7px; color: #111; letter-spacing: 0.01em; line-height: 1.32; }
-.hp-price { font-size: 18px; font-weight: 400; margin-bottom: 6px; color: #111; letter-spacing: 0.01em; }
+.hp-title { font-size: 18px; font-weight: 600; margin: 0 0 7px; color: #111; }
+.hp-price { font-size: 18px; font-weight: 400; margin-bottom: 6px; color: #111; }
 .hp-desc { font-size: 13px; color: #222; margin-top: 0; line-height: 1.5; }
 .hp-controls {
-  padding: 18px 22px 22px 22px; border-top: 1px solid #eee; display: flex;
-  flex-direction: column; gap: 15px;
+  padding: 18px 22px 22px 22px; border-top: 1px solid #eee; display: flex; flex-direction: column; gap: 15px;
 }
 .label { font-weight: 500; margin-bottom: 7px; color: #222; font-size: 14px; line-height: 1.45; }
 .hp-color-wrap {
-  display: flex; border: 1.5px solid #222; border-radius: 0; background: #fff; min-height: 50px; overflow: hidden;
+  display: flex; border: 1.5px solid #222; background: #fff; min-height: 50px; overflow: hidden;
 }
 .hp-color {
-  flex: 1 0 0; display: flex; align-items: center; justify-content: center;
-  font-weight: 500; color: #111; font-size: 20px; border: none; border-right: 1.5px solid #222;
-  border-radius: 0; background: #fff; height: 50px; transition: background 0.15s, border-left 0.15s; cursor: pointer;
+  flex: 1 0 0; display: flex; align-items: center; justify-content: center; font-weight: 500; color: #111; font-size: 20px; border: none; border-right: 1.5px solid #222; background: #fff; height: 50px; cursor: pointer; transition: background 0.15s, border-left 0.15s;
 }
 .hp-color:last-child { border-right: none; }
 .hp-color.selected { background: #fff; border-left: 4px solid #111; }
 .hp-size {
-  width: 100%; padding: 11px 13px; font-size: 16px; border: 1.5px solid #222;
-  border-radius: 0; background: #fff; color: #222; font-weight: 400; appearance: none; height: 44px;
+  width: 100%; padding: 11px 13px; font-size: 16px; border: 1.5px solid #222; background: #fff; color: #222; font-weight: 400; appearance: none; height: 44px;
+  border-radius: 0;
 }
 .hp-size:focus { outline: 2px solid #222; }
 .hp-add {
   background: #111; color: #fff; padding: 16px 0; font-weight: 600; width: 100%; border: none;
-  border-radius: 0; cursor: pointer; display: flex; flex-direction: row; justify-content: center;
-  align-items: center; gap: 8px; font-size: 20px; margin-top: 6px;
+  cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 20px; margin-top: 6px;
 }
-.hp-add::after {
-  content: "→"; margin-left: 8px; font-size: 21px; font-weight: 400;
-}
+.hp-add::after { content: "→"; margin-left: 8px; font-size: 21px; font-weight: 400; }
 </style>
+
 <div class="hp-inner">
   <h2 class="hp-heading" style="display:none;">{{ section.settings.heading }}</h2>
   <div class="hp-grid" id="hpGrid-{{ section.id }}">
     {%- for block in section.blocks -%}
-      {%- assign prod_handle = block.settings.product -%}
-      {% if prod_handle != blank and all_products[prod_handle] %}
-        {% assign prod = all_products[prod_handle] %}
-      {% else %}
-        {% assign prod = nil %}
-      {% endif %}
+      {% assign prod = all_products[block.settings.product] %}
       <div class="hp-card" data-block-id="{{ block.id }}">
         <div class="hp-image">
           {% if block.settings.override_image != blank %}
@@ -151,6 +122,7 @@
         <button class="hp-hotspot" type="button" aria-label="Open product quick view" data-open-modal-id="hpModal-{{ block.id }}" style="left: {{ left_pct }}%; top: {{ top_pct }}%;">
           <span class="hp-plus">+</span>
         </button>
+
         <div id="hpModal-{{ block.id }}" class="hp-modal" role="dialog" aria-hidden="true">
           <div class="hp-modal__card" role="document">
             <button class="hp-modal-close" aria-label="Close" data-close-modal-id="hpModal-{{ block.id }}">✕</button>
@@ -165,95 +137,62 @@
                 {% endif %}
               </div>
               <div class="hp-top-text">
-                {% if prod %}
-                  <h3 class="hp-title">{{ prod.title }}</h3>
-                  <div class="hp-price" data-price-target>
-                    {% assign first_variant = prod.variants.first %}
-                    {{ first_variant.price | money }}
-                  </div>
-                  <div class="hp-desc">{{ prod.description | strip_html | truncate: 130 }}</div>
-                {% else %}
-                  <h3 class="hp-title">No product selected</h3>
-                  <div class="hp-desc">Please select a product for this hotspot in the theme editor.</div>
-                {% endif %}
+                <h3 class="hp-title">{{ prod.title }}</h3>
+                <div class="hp-price" data-price-target>
+                  {{ prod.price | money }}
+                </div>
+                <div class="hp-desc">{{ prod.description | strip_html | truncate: 130 }}</div>
               </div>
             </div>
+
             <div class="hp-controls">
-              {% if prod %}
-                {% assign color_option_index = '' %}
-                {% assign size_option_index = '' %}
-                {% for opt_name in prod.options %}
-                  {% assign idx = forloop.index0 %}
-                  {% assign name_down = opt_name | downcase %}
-                  {% if color_option_index == '' %}
-                    {% if name_down == 'color' or name_down == 'colour' %}
-                      {% assign color_option_index = idx %}
-                    {% endif %}
-                  {% endif %}
-                  {% if size_option_index == '' %}
-                    {% if name_down == 'size' %}
-                      {% assign size_option_index = idx %}
-                    {% endif %}
-                  {% endif %}
-                {% endfor %}
-                {% if color_option_index == '' and prod.options.size > 0 %}
-                  {% assign color_option_index = 0 %}
-                {% endif %}
-                {% if size_option_index == '' and prod.options.size > 1 %}
-                  {% assign size_option_index = 1 %}
-                {% endif %}
-                <span class="label">Color</span>
+              <span class="label">Color</span>
+              <div class="hp-color-wrap">
                 {% assign seen_colors = '' | split: ',' %}
-                <div class="hp-color-wrap" data-color-index="{{ color_option_index }}">
-                  {% for var in prod.variants %}
-                    {% assign raw_color_val = var.options[color_option_index] | default: '' %}
-                    {% assign color_key = raw_color_val | strip | downcase %}
-                    {% if color_key != '' %}
-                      {% unless seen_colors contains color_key %}
-                        {% assign seen_colors = seen_colors | push: color_key %}
-                        <button type="button" class="hp-color" data-option-index="{{ color_option_index }}" data-option-value="{{ raw_color_val | escape }}" aria-pressed="false">
-                          {{ raw_color_val }}
-                        </button>
-                      {% endunless %}
-                    {% endif %}
-                  {% endfor %}
-                </div>
-                <span class="label">Size</span>
-                {% assign seen_sizes = '' | split: ',' %}
-                <div style="display:block;width:100%;">
-                  <select class="hp-size" data-size-index="{{ size_option_index }}">
-                    <option value="">Choose your size</option>
-                    {% for var in prod.variants %}
-                      {% assign size_val = var.options[size_option_index] | default: '' %}
-                      {% assign size_key = size_val | strip | downcase %}
-                      {% if size_key != '' %}
-                        {% unless seen_sizes contains size_key %}
-                          {% assign seen_sizes = seen_sizes | push: size_key %}
-                          <option value="{{ size_val | escape }}">{{ size_val }}</option>
-                        {% endunless %}
-                      {% endif %}
-                    {% endfor %}
-                  </select>
-                </div>
-                {% assign default_variant = prod.variants.first %}
-                <form method="post" action="/cart/add" class="hp-add-form" data-block="{{ block.id }}" novalidate>
-                  <input type="hidden" name="id" value="{{ default_variant.id }}" class="hp-variant-input" />
-                  <input type="hidden" name="quantity" value="1" />
-                  <div>
-                    <button type="submit" class="hp-add">ADD TO CART</button>
-                  </div>
-                </form>
-                {% assign variants_map = '' | split: ',' %}
                 {% for var in prod.variants %}
-                  {% assign key = var.options | join: '||' %}
-                  {% capture map_item %}{{ key }}::{{ var.id }}::{{ var.available }}::{{ var.price | money_without_currency }}{% endcapture %}
-                  {% assign variants_map = variants_map | push: map_item %}
+                  {% assign color_val = var.options[0] | default: '' %}
+                  {% assign color_key = color_val | downcase | strip %}
+                  {% if color_key != '' %}
+                    {% unless seen_colors contains color_key %}
+                      {% assign seen_colors = seen_colors | push: color_key %}
+                      <button type="button" class="hp-color" data-option-value="{{ color_val | escape }}" aria-pressed="false">{{ color_val }}</button>
+                    {% endunless %}
+                  {% endif %}
                 {% endfor %}
-                {% assign variants_json = variants_map | json %}
-                <script type="application/json" class="hp-variants-data" data-block="{{ block.id }}">
-                  {{ variants_json }}
-                </script>
-              {% endif %}
+              </div>
+
+              <span class="label">Size</span>
+              <select class="hp-size">
+                <option value="">Choose your size</option>
+                {% assign seen_sizes = '' | split: ',' %}
+                {% for var in prod.variants %}
+                  {% assign size_val = var.options[1] | default: '' %}
+                  {% assign size_key = size_val | downcase | strip %}
+                  {% if size_key != '' %}
+                    {% unless seen_sizes contains size_key %}
+                      {% assign seen_sizes = seen_sizes | push: size_key %}
+                      <option value="{{ size_val | escape }}">{{ size_val }}</option>
+                    {% endunless %}
+                  {% endif %}
+                {% endfor %}
+              </select>
+
+              <form method="post" action="/cart/add" novalidate class="hp-add-form" data-block="{{ block.id }}">
+                <input type="hidden" name="id" value="{{ prod.variants.first.id }}" class="hp-variant-input" />
+                <input type="hidden" name="quantity" value="1" />
+                <button type="submit" class="hp-add">ADD TO CART</button>
+              </form>
+
+              <script type="application/json" class="hp-variants-data" data-block="{{ block.id }}">
+                {
+                  {% assign variants_array = '' | split: ',' %}
+                  {% for var in prod.variants %}
+                    {% capture var_obj %}"{{ var.options[0] }},{{ var.options[11] }}":{"id":{{ var.id }},"price":"{{ var.price | money_without_currency }}","available":{{ var.available | json }}}{% endcapture %}
+                    {% assign variants_array = variants_array | push: var_obj %}
+                  {% endfor %}
+                  {{ variants_array | join: ',' }}
+                }
+              </script>
             </div>
           </div>
         </div>
@@ -261,56 +200,127 @@
     {%- endfor -%}
   </div>
 </div>
+
 <script>
 (function(){
   'use strict';
+
   var sectionRoot = document.querySelector('[id^="hotspot-products-"]');
-  if (!sectionRoot) return;
+  if(!sectionRoot) return;
+
+  // Modal open/close handlers
   sectionRoot.addEventListener('click', function(e){
     var btn = e.target.closest && e.target.closest('.hp-hotspot');
-    if (!btn) return;
-    e.preventDefault();
-    var modal = document.getElementById(btn.getAttribute('data-open-modal-id'));
-    if (!modal) return;
-    modal.classList.add('open');
-    modal.setAttribute('aria-hidden','false');
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-    var focus = modal.querySelector('select, button, input, a, textarea');
-    if (focus) focus.focus();
-  });
-  sectionRoot.addEventListener('click', function(e){
-    var close = e.target.closest && e.target.closest('[data-close-modal-id]');
-    if (close) {
-      var mid = close.getAttribute('data-close-modal-id');
-      var modal = document.getElementById(mid);
-      if (modal) {
-        modal.classList.remove('open');
-        modal.setAttribute('aria-hidden','true');
-        document.documentElement.style.overflow='';
-        document.body.style.overflow='';
+    if(btn){
+      e.preventDefault();
+      var modal = document.getElementById(btn.getAttribute('data-open-modal-id'));
+      if(modal){
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden','false');
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+        var focus = modal.querySelector('select, button, input, a, textarea');
+        if(focus) focus.focus();
       }
       return;
     }
+
+    var close = e.target.closest && e.target.closest('[data-close-modal-id]');
+    if(close){
+      var mid = close.getAttribute('data-close-modal-id');
+      var modal = document.getElementById(mid);
+      if(modal){
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden','true');
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+      }
+      return;
+    }
+
     var overlay = e.target.closest && e.target.closest('.hp-modal.open');
-    if (overlay && e.target === overlay) {
+    if(overlay && e.target === overlay){
       overlay.classList.remove('open');
       overlay.setAttribute('aria-hidden','true');
-      document.documentElement.style.overflow='';
-      document.body.style.overflow='';
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
     }
   });
+
   document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape' || e.key === 'Esc') {
+    if(e.key === 'Escape' || e.key === 'Esc'){
       var opens = sectionRoot.querySelectorAll('.hp-modal.open');
       opens.forEach(function(m){
         m.classList.remove('open');
         m.setAttribute('aria-hidden','true');
       });
-      document.documentElement.style.overflow='';
-      document.body.style.overflow='';
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
     }
   });
+
+  // Variant selection logic
+  sectionRoot.querySelectorAll('.hp-modal').forEach(function(modal){
+    var variantsScript = modal.querySelector('script.hp-variants-data');
+    var variantsMap = {};
+    try {
+      variantsMap = JSON.parse(variantsScript.textContent || '{}');
+    } catch(e) {}
+
+    var variantInput = modal.querySelector('.hp-variant-input');
+    var colorButtons = modal.querySelectorAll('.hp-color');
+    var sizeSelect = modal.querySelector('.hp-size');
+
+    var selectedColor = '', selectedSize = '';
+
+    function updateVariant() {
+      if(!selectedColor && colorButtons.length) selectedColor = colorButtons[0].textContent.trim();
+      if(!selectedSize && sizeSelect) selectedSize = sizeSelect.value;
+
+      for(var key in variantsMap){
+        var parts = key.split(',');
+        if(parts === selectedColor && parts[11] === selectedSize){
+          if(variantInput) variantInput.value = variantsMap[key].id;
+          var priceEl = modal.querySelector('[data-price-target]');
+          if(priceEl) priceEl.textContent = variantsMap[key].price;
+          return;
+        }
+      }
+      // fallback to default variant
+      if(variantInput) variantInput.value = variantInput.value || '';
+    }
+
+    colorButtons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        colorButtons.forEach(b=>{
+          b.classList.remove('selected');
+          b.setAttribute('aria-pressed','false');
+        });
+        btn.classList.add('selected');
+        btn.setAttribute('aria-pressed','true');
+        selectedColor = btn.textContent.trim();
+        updateVariant();
+      });
+    });
+
+    if(sizeSelect){
+      sizeSelect.addEventListener('change', function(){
+        selectedSize = sizeSelect.value;
+        updateVariant();
+      });
+    }
+
+    // Initialize selections on modal open
+    if(colorButtons.length){
+      colorButtons[0].classList.add('selected');
+      colorButtons.setAttribute('aria-pressed', 'true');
+      selectedColor = colorButtons.textContent.trim();
+    }
+    if(sizeSelect) selectedSize = sizeSelect.value;
+
+    updateVariant();
+  });
+
 })();
 </script>
 </section>
