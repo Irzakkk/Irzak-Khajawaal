@@ -215,6 +215,8 @@
   'use strict';
   var sectionRoot = document.querySelector('[id^="hotspot-products-"]');
   if (!sectionRoot) return;
+
+  // Open modal
   sectionRoot.addEventListener('click', function(e){
     var btn = e.target.closest && e.target.closest('.hp-hotspot');
     if (!btn) return;
@@ -228,6 +230,8 @@
     var focus = modal.querySelector('select, button, input, a, textarea');
     if (focus) focus.focus();
   });
+
+  // Close modal
   sectionRoot.addEventListener('click', function(e){
     var close = e.target.closest && e.target.closest('[data-close-modal-id]');
     if (close) {
@@ -249,6 +253,8 @@
       document.body.style.overflow='';
     }
   });
+
+  // Escape key closes modal
   document.addEventListener('keydown', function(e){
     if (e.key === 'Escape' || e.key === 'Esc') {
       var opens = sectionRoot.querySelectorAll('.hp-modal.open');
@@ -260,6 +266,23 @@
       document.body.style.overflow='';
     }
   });
+
+  // **Color selection**
+  sectionRoot.addEventListener('click', function(e){
+    var colorBtn = e.target.closest && e.target.closest('.hp-color');
+    if (!colorBtn) return;
+    var parent = colorBtn.closest('.hp-color-wrap');
+    if (!parent) return;
+
+    // Remove 'selected' from all siblings
+    parent.querySelectorAll('.hp-color').forEach(function(btn){
+      btn.classList.remove('selected');
+    });
+
+    // Add 'selected' to clicked button
+    colorBtn.classList.add('selected');
+  });
 })();
 </script>
+
 </section>
