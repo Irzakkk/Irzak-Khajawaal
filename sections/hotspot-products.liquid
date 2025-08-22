@@ -186,20 +186,13 @@
                   <button type="button" class="hp-color" data-option-index="0" data-option-value="White">White</button>
                 </div>
                 <span class="label">Size</span>
-                {% assign seen_sizes = '' | split: ',' %}
                 <div style="display:block;width:100%;">
                   <select class="hp-size" data-size-index="1">
                     <option value="">Choose your size</option>
-                    {% for var in prod.variants %}
-                      {% assign size_val = var.options[1] | default: '' %}
-                      {% assign size_key = size_val | strip | downcase %}
-                      {% if size_key != '' %}
-                        {% unless seen_sizes contains size_key %}
-                          {% assign seen_sizes = seen_sizes | push: size_key %}
-                          <option value="{{ size_val | escape }}">{{ size_val }}</option>
-                        {% endunless %}
-                      {% endif %}
-                    {% endfor %}
+                    <option value="XS">XS</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
                   </select>
                 </div>
                 <form method="post" action="/cart/add" class="hp-add-form" data-block="{{ block.id }}" novalidate>
