@@ -1,10 +1,10 @@
 {%- comment -%}
   sections/gift-guide-banner.liquid
   - Header with logo / tagline / choose button (desktop)
-  - Mobile hamburger (left) opens overlay with logo -> tagline -> choose button
+  - Mobile hamburger (left) opens animated overlay (logo → tagline → choose button)
   - Hero banner with desktop overlay content bottom-left and mobile content above banner
   - Mobile CTA inside banner centered bottom, wider, no hover animation
-  - All top texts/buttons editable via schema
+  - Separate bottom strip text for mobile
 {%- endcomment -%}
 
 {% liquid
@@ -44,102 +44,81 @@
       height:64px;
     }
 
-    /* left desktop area */
     #gift-guide-{{ section.id }} .hb-left{ display:flex; align-items:center; gap:12px; min-width:160px; }
     #gift-guide-{{ section.id }} .hb-logo{ font-size:22px; font-weight:700; margin:0; color:var(--gg-text); }
 
-    /* center tagline (desktop) */
     #gift-guide-{{ section.id }} .hb-tagline--desktop{
-      position:absolute;
-      left:50%;
-      transform:translateX(-50%);
-      text-align:center;
-      font-size:14px;
-      white-space:nowrap;
-      color:var(--gg-text);
+      position:absolute; left:50%; transform:translateX(-50%);
+      text-align:center; font-size:14px; white-space:nowrap; color:var(--gg-text);
     }
 
-    /* right choose (desktop) */
     #gift-guide-{{ section.id }} .hb-right{ min-width:170px; display:flex; justify-content:flex-end; }
     #gift-guide-{{ section.id }} .hb-choose{
-      display:inline-flex; align-items:center; gap:10px;
-      padding:12px 22px; border-radius:8px;
+      display:inline-flex; align-items:center; gap:10px; padding:12px 22px; border-radius:8px;
       background:var(--gg-yellow); color:#111; font-weight:700; text-decoration:none;
       border:1px solid rgba(0,0,0,0.06);
-      transition: background .18s, color .18s, transform .12s, box-shadow .12s;
+      transition: background .18s ease, color .18s ease, transform .12s ease, box-shadow .12s ease;
+      white-space:nowrap;
     }
     #gift-guide-{{ section.id }} .hb-choose:hover{ background:var(--gg-black); color:var(--gg-yellow); transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.12); }
 
-    /* hamburger (mobile) - left */
+    /* Hamburger (mobile) - left */
     #gift-guide-{{ section.id }} .hb-hamburger{
-      display:none;
-      background:transparent;
-      border:0;
-      font-size:22px;
-      cursor:pointer;
-      padding:8px;
-      width:44px;
-      height:44px;
-      z-index:9999;
-      line-height:1;
+      display:none; background:transparent; border:0; font-size:22px; cursor:pointer;
+      padding:8px; width:44px; height:44px; z-index:9999; line-height:1;
+      transition: transform .18s ease;
     }
+    #gift-guide-{{ section.id }} .hb-hamburger.is-open{ transform:rotate(0.0001deg); } /* placeholder for subtle state */
 
-    /* ---------- MOBILE OVERLAY MENU ---------- */
+    /* ---------- MOBILE OVERLAY MENU (animated) ---------- */
     #gift-guide-{{ section.id }} .hb-mobile-menu{
-      display:none;
-      position:fixed;
-      inset:0;
+      /* backdrop layer */
+      position:fixed; inset:0; z-index:9998;
       background: {{ section.settings.header_bg | default: '#ffffff' }};
-      padding:36px 20px 24px;
-      z-index:9998;
-      overflow-y:auto;
-      -webkit-overflow-scrolling:touch;
+      display:block; /* keep in DOM for animation; we control visibility via opacity & pointer-events */
+      opacity:0; pointer-events:none;
+      transition: opacity .22s ease;
+      overflow-y:auto; -webkit-overflow-scrolling:touch;
     }
-    #gift-guide-{{ section.id }} .hb-mobile-menu.open{ display:block; }
+    #gift-guide-{{ section.id }} .hb-mobile-menu::after{
+      /* soft bottom shadow like screenshot */
+      content:''; position:fixed; left:0; right:0; top:64px; height:18px;
+      box-shadow:0 10px 30px rgba(0,0,0,.12);
+      pointer-events:none; opacity:0; transition:opacity .22s ease;
+    }
+    #gift-guide-{{ section.id }} .hb-mobile-menu.open{ opacity:1; pointer-events:auto; }
+    #gift-guide-{{ section.id }} .hb-mobile-menu.open::after{ opacity:1; }
+
+    /* the sliding panel (drops from top slightly) */
+    #gift-guide-{{ section.id }} .hb-mobile-panel{
+      max-width:var(--gg-max-w); margin:0 auto; padding:16px 20px 28px;
+      transform:translateY(-14px); opacity:0;
+      transition: transform .28s cubic-bezier(.22,.61,.36,1), opacity .22s ease;
+    }
+    #gift-guide-{{ section.id }} .hb-mobile-menu.open .hb-mobile-panel{
+      transform:translateY(0); opacity:1;
+    }
 
     #gift-guide-{{ section.id }} .hb-mobile-inner{
-      max-width:var(--gg-max-w);
-      margin:0 auto;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:16px;
+      display:flex; flex-direction:column; align-items:center; gap:16px;
     }
 
-    /* logo (top of drawer) */
+    /* Logo inside drawer */
     #gift-guide-{{ section.id }} .hb-mobile-logo{
-      font-size:22px;
-      font-weight:800;
-      margin-top:6px;
-      margin-bottom:8px;
-      text-align:center;
-      color:var(--gg-text);
-      width:100%;
-      padding:4px 8px;
-      box-sizing:border-box;
+      font-size:22px; font-weight:800; margin-top:6px; margin-bottom:8px;
+      text-align:center; color:var(--gg-text); width:100%;
     }
 
     #gift-guide-{{ section.id }} .hb-mobile-tagline{
-      font-size:16px;
-      text-align:center;
-      color:var(--gg-text);
-      padding:0 10px;
-      line-height:1.3;
+      font-size:16px; text-align:center; color:var(--gg-text);
+      padding:0 10px; line-height:1.35;
     }
 
-    /* full-width choose button inside mobile menu */
     #gift-guide-{{ section.id }} .hb-choose-mobile{
-      display:inline-block;
-      width:100%;
-      max-width:420px;
-      text-align:center;
-      padding:14px 18px;
-      border-radius:8px;
-      background:var(--gg-yellow);
-      color:#111;
-      font-weight:700;
-      text-decoration:none;
-      border:1px solid rgba(0,0,0,0.06);
+      display:inline-block; width:100%; max-width:420px; text-align:center;
+      padding:14px 18px; border-radius:8px; background:var(--gg-yellow); color:#111;
+      font-weight:700; text-decoration:none; border:1px solid rgba(0,0,0,0.06);
+      white-space:nowrap;
     }
     #gift-guide-{{ section.id }} .hb-choose-mobile:hover{ background:var(--gg-black); color:var(--gg-yellow); }
 
@@ -156,40 +135,37 @@
     #gift-guide-{{ section.id }} .gg-subtext{ font-size:clamp(14px,1.5vw,18px); line-height:1.6; max-width:620px; color:var(--gg-text); margin:0; }
     #gift-guide-{{ section.id }} .gg-subtext--mobile{ display:none; }
 
-    /* CTA: prevent wrap and keep arrow inline (desktop + mobile) */
+    /* CTA single-line with inline arrow */
     #gift-guide-{{ section.id }} .gg-cta,
     #gift-guide-{{ section.id }} .gg-cta--mobile{
-      white-space:nowrap;
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
+      white-space:nowrap; display:inline-flex; align-items:center; gap:10px;
     }
-
     #gift-guide-{{ section.id }} .gg-cta{
-      margin-top:20px;
-      background:var(--gg-black); color:#fff; text-decoration:none;
+      margin-top:20px; background:var(--gg-black); color:#fff; text-decoration:none;
       padding:16px 40px; border-radius:10px; border:2px solid var(--gg-black); font-weight:700;
-      transition:transform .18s, box-shadow .18s;
+      transition:transform .18s ease, box-shadow .18s ease;
     }
     #gift-guide-{{ section.id }} .gg-cta:hover{ transform:translateY(-2px); box-shadow:0 10px 28px rgba(0,0,0,.18); }
 
     #gift-guide-{{ section.id }} .gg-cta--mobile{
       position:absolute; left:50%; bottom:20px; transform:translateX(-50%); display:none;
-      padding:16px 56px; border-radius:12px; background:var(--gg-black); color:#fff; font-weight:700; text-decoration:none; border:2px solid var(--gg-black);
+      padding:16px 56px; border-radius:12px; background:var(--gg-black); color:#fff; font-weight:700;
+      text-decoration:none; border:2px solid var(--gg-black);
     }
     #gift-guide-{{ section.id }} .gg-cta--mobile:hover{ transform:none; box-shadow:none; }
 
     /* hero media */
+    #gift-guide-{{ section.id }} .gg-hero{ position:relative; margin:0 auto; padding:0 16px 0; }
     #gift-guide-{{ section.id }} .gg-hero__media{ position:relative; width:100%; height:560px; overflow:hidden; }
-    #gift-guide-{{ section.id }} .gg-hero__media img{ width:100%; height:100%; object-fit:cover; display:block; }
+    #gift-guide-{{ section.id }} .gg-hero__media img{ width:100%; height:100%; object-fit:cover; object-position:center; display:block; }
 
-    /* bottom strip */
+    /* ---------- BOTTOM STRIP (desktop + mobile variants) ---------- */
     #gift-guide-{{ section.id }} .gg-strip{ width:100%; background:#f7f7f7; border-top:1px solid rgba(0,0,0,.08); border-bottom:1px solid rgba(0,0,0,.08); }
-    #gift-guide-{{ section.id }} .gg-strip__inner{ max-width:var(--gg-max-w); margin:0 auto; padding:10px 16px; text-align:center; font-size:12px; font-weight:600; letter-spacing:.06em; }
+    #gift-guide-{{ section.id }} .gg-strip__inner{ max-width:var(--gg-max-w); margin:0 auto; padding:10px 16px; text-align:center; font-size:12px; letter-spacing:.08em; font-weight:600; }
+    #gift-guide-{{ section.id }} .gg-strip__inner--mobile{ display:none; }
 
     /* ---------- LAYOUT ---------- */
     @media (min-width:990px){
-      /* desktop: hide mobile elements */
       #gift-guide-{{ section.id }} .hb-hamburger,
       #gift-guide-{{ section.id }} .hb-mobile-menu,
       #gift-guide-{{ section.id }} .gg-heading--mobile,
@@ -201,14 +177,14 @@
     }
 
     @media (max-width:989px){
-      /* mobile: logo centered, hamburger left, desktop choose hidden */
+      /* mobile: logo centered, hamburger left */
       #gift-guide-{{ section.id }} .hb-inner{ justify-content:center; padding:12px 16px; }
       #gift-guide-{{ section.id }} .hb-hamburger{ display:inline-flex; position:absolute; left:12px; top:12px; }
       #gift-guide-{{ section.id }} .hb-left{ order:2; display:block; }
       #gift-guide-{{ section.id }} .hb-right, #gift-guide-{{ section.id }} .hb-tagline--desktop{ display:none; }
       #gift-guide-{{ section.id }} .hb-logo{ text-align:center; width:100%; }
 
-      /* hero: mobile content above banner */
+      /* hero content above banner */
       #gift-guide-{{ section.id }} .gg-content{ position:static; text-align:center; padding:18px 16px 8px; }
       #gift-guide-{{ section.id }} .gg-heading{ display:none; }
       #gift-guide-{{ section.id }} .gg-subtext{ display:none; }
@@ -218,6 +194,10 @@
       #gift-guide-{{ section.id }} .gg-hero__media{ height:420px; }
       #gift-guide-{{ section.id }} .gg-cta{ display:none; }
       #gift-guide-{{ section.id }} .gg-cta--mobile{ display:inline-flex; }
+
+      /* bottom strip switch to mobile content */
+      #gift-guide-{{ section.id }} .gg-strip__inner--desktop{ display:none; }
+      #gift-guide-{{ section.id }} .gg-strip__inner--mobile{ display:block; }
     }
   {%- endstyle -%}
 
@@ -234,7 +214,6 @@
         {%- if section.settings.choose_btn_label != blank -%}
           <a class="hb-choose" href="{{ section.settings.choose_btn_link }}" aria-label="{{ section.settings.choose_btn_label }}">
             <span>{{ section.settings.choose_btn_label }}</span>
-            <!-- small arrow icon -->
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M6 12h12m0 0-5-5m5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </a>
         {%- endif -%}
@@ -246,19 +225,21 @@
       </button>
     </div>
 
-    <!-- Mobile overlay menu -->
+    <!-- Mobile overlay menu (animated drop) -->
     <div class="hb-mobile-menu" id="hbMobileMenu-{{ section.id }}" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Mobile menu">
-      <div class="hb-mobile-inner">
-        <div class="hb-mobile-logo" tabindex="-1">{{ section.settings.logo_text }}</div>
+      <div class="hb-mobile-panel">
+        <div class="hb-mobile-inner">
+          <div class="hb-mobile-logo" tabindex="-1">{{ section.settings.logo_text }}</div>
 
-        <div class="hb-mobile-tagline">{{ section.settings.tagline_text }}</div>
+          <div class="hb-mobile-tagline">{{ section.settings.tagline_text }}</div>
 
-        {%- if section.settings.choose_btn_label != blank -%}
-          <a class="hb-choose-mobile" href="{{ section.settings.choose_btn_link }}" aria-label="{{ section.settings.choose_btn_label }}">
-            {{ section.settings.choose_btn_label }}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" style="margin-left:8px"><path d="M6 12h12m0 0-5-5m5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </a>
-        {%- endif -%}
+          {%- if section.settings.choose_btn_label != blank -%}
+            <a class="hb-choose-mobile" href="{{ section.settings.choose_btn_link }}" aria-label="{{ section.settings.choose_btn_label }}">
+              {{ section.settings.choose_btn_label }}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" style="margin-left:8px"><path d="M6 12h12m0 0-5-5m5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          {%- endif -%}
+        </div>
       </div>
     </div>
   </div>
@@ -305,8 +286,15 @@
     </div>
   </div>
 
-  <!-- Bottom strip -->
-  <div class="gg-strip"><div class="gg-strip__inner">{{ section.settings.bottom_strip_text }}</div></div>
+  <!-- Bottom strip (desktop + mobile variants) -->
+  <div class="gg-strip">
+    <div class="gg-strip__inner gg-strip__inner--desktop">
+      {{ section.settings.bottom_strip_text }}
+    </div>
+    <div class="gg-strip__inner gg-strip__inner--mobile">
+      {{ section.settings.bottom_strip_text_mobile | default: section.settings.bottom_strip_text }}
+    </div>
+  </div>
 </section>
 
 <!-- Static JS: no Liquid inside this script tag (reads section id via data attribute) -->
@@ -314,7 +302,7 @@
 (function(){
   'use strict';
 
-  // identify the section root using data attribute (no Liquid injected here)
+  // locate section root
   var root = document.currentScript && document.currentScript.previousElementSibling;
   if (!root || !root.dataset || !root.dataset.sectionId) {
     var secs = document.querySelectorAll('[id^="gift-guide-"]');
@@ -328,8 +316,6 @@
   var icon = document.getElementById('hbHamburgerIcon-' + sectionId);
 
   if (!hb || !menu) return;
-
-  // Prevent double-bind across editor reloads
   if (hb.getAttribute('data-gift-hamburger-bound') === '1') return;
   hb.setAttribute('data-gift-hamburger-bound','1');
 
@@ -347,8 +333,7 @@
     menu.setAttribute('aria-hidden','false');
     if (icon) icon.textContent = '✕';
     lockScroll(true);
-    // scroll to top and focus logo for accessibility
-    try { menu.scrollTop = 0; } catch(e){}
+    // focus logo for a11y
     var logo = menu.querySelector('.hb-mobile-logo');
     if (logo && logo.focus) logo.focus({preventScroll:true});
   }
@@ -369,12 +354,9 @@
   }
 
   hb.addEventListener('click', toggleMenu, { passive: false });
-  hb.addEventListener('touchstart', function(e){
-    e.preventDefault();
-    toggleMenu();
-  }, { passive: false });
+  hb.addEventListener('touchstart', function(e){ e.preventDefault(); toggleMenu(); }, { passive: false });
 
-  // close when user clicks a link inside the menu
+  // close when clicking a link inside the menu
   menu.addEventListener('click', function(e){
     var a = e.target.closest && e.target.closest('a');
     if (a) closeMenu();
@@ -423,7 +405,8 @@
     { "type": "url", "id": "cta_link", "label": "Hero CTA link", "default": "/" },
 
     { "type": "header", "content": "Bottom strip" },
-    { "type": "text", "id": "bottom_strip_text", "label": "Bottom strip text", "default": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL" },
+    { "type": "text", "id": "bottom_strip_text", "label": "Bottom strip text (desktop)", "default": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL" },
+    { "type": "text", "id": "bottom_strip_text_mobile", "label": "Bottom strip text (mobile)", "default": "/" },
 
     { "type": "color", "id": "section_bg", "label": "Section background", "default": "#ffffff" }
   ],
