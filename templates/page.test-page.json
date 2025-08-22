@@ -22,12 +22,13 @@
     },
     "gift_guide_banner_cheDrb": {
       "type": "gift-guide-banner",
+      "custom_css": [],
       "name": "Gift Guide Banner",
       "settings": {
         "logo_text": "TISSO VISION",
         "tagline_text": "Find the ideal gift for your ideal ones.",
         "choose_btn_link": "",
-        "choose_btn_label": "CHOOSE GIFT",
+        "choose_btn_label": "THE CHOOSE GIFT",
         "choose_btn_bg": "#ffe34d",
         "header_bg": "#ffffff",
         "text_color": "#111111",
@@ -37,7 +38,7 @@
         "bg_image": "shopify://shop_images/Group_1000008197.png",
         "heading": "The Gift Guide",
         "subtext": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>",
-        "mobile_heading": "Gift Box",
+        "mobile_heading": "The Gift Guide",
         "mobile_subtext": "Find the ideal gift for your loved ones.",
         "cta_label": "SHOP NOW",
         "cta_link": "",
