@@ -3,11 +3,11 @@
   - Hotspot product grid (editable blocks: product picker)
   - Up to 6 blocks (hotspots). Grid: 3 cols desktop, 2 cols mobile
   - Click hotspot -> open animated modal with product card:
-      * product image, title, price, short description
-      * color swatches (box switcher) and size select (dropdown)
-      * quantity fixed to 1 and Add to cart (works)
-  - All variant mapping rendered server-side in data-variants JSON for JS
-  - Buttons border-radius removed (single-line CSS)
+      * product image (left), right-side content with title/price/desc
+      * below that: color swatches (box switcher) and size select (dropdown)
+      * Add to cart (quantity fixed to 1)
+  - Deduplicated color values (trim + downcase)
+  - Buttons border-radius removed except hotspot (hotspot remains round)
   - Per-block hotspot position via settings (left% / top%)
 {%- endcomment -%}
 
@@ -56,7 +56,7 @@
     #hotspot-products-{{ section.id }} .hp-image { display:block; width:100%; height: 0; padding-bottom: 100%; position:relative; background:#f5f5f5; }
     #hotspot-products-{{ section.id }} .hp-image img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 
-    /* Hotspot button (circle + plus) */
+    /* Hotspot button (circle + plus) - stays round */
     #hotspot-products-{{ section.id }} .hp-hotspot {
       position: absolute;
       width: 34px;
@@ -127,7 +127,7 @@
       min-width:80px; padding:12px 14px; border:1px solid #ddd; background:#f4f4f4;
       cursor:pointer; font-weight:700; color:#111; text-transform:none;
     }
-    /* left border for selected; we'll set border-left-color in JS for accurate color */
+    /* show left border for selected; JS will set border-left-color */
     #hotspot-products-{{ section.id }} .hp-color.selected { border-left-width:6px; border-left-style:solid; background:#fff; box-shadow:0 6px 18px rgba(0,0,0,.06); }
 
     /* Size select */
@@ -137,11 +137,10 @@
     #hotspot-products-{{ section.id }} .hp-addwrap { margin-top:6px; }
     #hotspot-products-{{ section.id }} .hp-add { display:inline-flex; align-items:center; gap:10px; padding:14px 22px; background:#000; color:#fff; font-weight:700; text-decoration:none; border:0; cursor:pointer; }
 
-    /* Remove border-radius on buttons (single-line change) */
+    /* Remove border-radius on buttons (single-line change) - exclude .hp-hotspot so it stays round */
     #hotspot-products-{{ section.id }} .hp-add,
     #hotspot-products-{{ section.id }} .hp-modal-close,
-    #hotspot-products-{{ section.id }} .hp-color,
-    #hotspot-products-{{ section.id }} .hp-hotspot { border-radius: 0 !important; }
+    #hotspot-products-{{ section.id }} .hp-color { border-radius: 0 !important; }
 
     /* Close X */
     #hotspot-products-{{ section.id }} .hp-modal-close { position:absolute; right:12px; top:12px; background:transparent; border:0; font-size:26px; cursor:pointer; color:#111; padding:6px; }
@@ -216,7 +215,8 @@
                     <div class="hp-desc">{{ prod.description | strip_html | truncate: 260 }}</div>
 
                     {%- comment -%}
-                      Identify color & size option indices (safe checks). Use empty-string markers.
+                      Identify color & size option indices (safe checks).
+                      We'll normalize option names and pick sensible defaults.
                     {%- endcomment -%}
                     {% assign color_option_index = '' %}
                     {% assign size_option_index = '' %}
@@ -224,13 +224,11 @@
                     {% for opt_name in prod.options %}
                       {% assign idx = forloop.index0 %}
                       {% assign name_down = opt_name | downcase %}
-
                       {% if color_option_index == '' %}
                         {% if name_down contains 'color' or name_down contains 'colour' %}
                           {% assign color_option_index = idx %}
                         {% endif %}
                       {% endif %}
-
                       {% if size_option_index == '' %}
                         {% if name_down contains 'size' %}
                           {% assign size_option_index = idx %}
@@ -246,7 +244,7 @@
                     {% endif %}
 
                     {%- comment -%}
-                      Build variants map: array of strings -> JSON. Each line: "opt1||opt2::variantId::available::price"
+                      Build variants map: array lines -> JSON. Each line: "opt1||opt2::variantId::available::price"
                     {%- endcomment -%}
                     {% assign variants_map = '' | split: ',' %}
                     {% for var in prod.variants %}
@@ -257,7 +255,7 @@
                     {% assign variants_json = variants_map | json %}
 
                     {%- comment -%}
-                      Output color buttons (unique values). Use stripped lower-case for seen check.
+                      Output color buttons (unique normalized values only)
                     {%- endcomment -%}
                     {% if prod.options.size > 0 and color_option_index != '' %}
                       <div class="hp-colors" data-color-index="{{ color_option_index }}">
@@ -265,17 +263,19 @@
                         {% for var in prod.variants %}
                           {% assign raw_color_val = var.options[color_option_index] | default: '' %}
                           {% assign color_val_key = raw_color_val | strip | downcase %}
-                          {% unless seen_colors contains color_val_key %}
-                            {% assign seen_colors = seen_colors | push: color_val_key %}
-                            <button type="button"
-                              class="hp-color"
-                              data-block="{{ block.id }}"
-                              data-option-index="{{ color_option_index }}"
-                              data-option-value="{{ raw_color_val | escape }}"
-                              aria-pressed="false">
-                              {{ raw_color_val }}
-                            </button>
-                          {% endunless %}
+                          {% if color_val_key != '' %}
+                            {% unless seen_colors contains color_val_key %}
+                              {% assign seen_colors = seen_colors | push: color_val_key %}
+                              <button type="button"
+                                class="hp-color"
+                                data-block="{{ block.id }}"
+                                data-option-index="{{ color_option_index }}"
+                                data-option-value="{{ raw_color_val | escape }}"
+                                aria-pressed="false">
+                                {{ raw_color_val }}
+                              </button>
+                            {% endunless %}
+                          {% endif %}
                         {% endfor %}
                       </div>
                     {% endif %}
@@ -290,10 +290,12 @@
                         {% for var in prod.variants %}
                           {% assign size_val = var.options[size_option_index] | default: '' %}
                           {% assign size_key = size_val | strip | downcase %}
-                          {% unless seen_sizes contains size_key %}
-                            {% assign seen_sizes = seen_sizes | push: size_key %}
-                            <option value="{{ size_val | escape }}">{{ size_val }}</option>
-                          {% endunless %}
+                          {% if size_key != '' %}
+                            {% unless seen_sizes contains size_key %}
+                              {% assign seen_sizes = seen_sizes | push: size_key %}
+                              <option value="{{ size_val | escape }}">{{ size_val }}</option>
+                            {% endunless %}
+                          {% endif %}
                         {% endfor %}
                       </select>
                     {% endif %}
@@ -330,7 +332,7 @@
     </div>
   </div>
 
-  <!-- Client JS (static) - no Liquid variables inside JS body; reads data-* attributes/rendered JSON -->
+  <!-- Client JS (static) -->
   <script>
   (function(){
     'use strict';
@@ -353,7 +355,7 @@
       "purple": "#7b1fa2"
     };
 
-    // Helper: parse variants data (array of strings "opt1||opt2::id::available::price")
+    // Parse variants JSON (arr of "opt1||opt2::variantId::available::price")
     function parseVariantsData(scriptEl) {
       try {
         var raw = scriptEl.textContent || scriptEl.innerText || '[]';
@@ -385,12 +387,9 @@
         }
         if (sizeIndex !== null && sizeIndex === i) {
           var sizeSelect = modalEl.querySelector('select.hp-size[data-size-index="'+sizeIndex+'"]');
-          if (sizeSelect) {
-            // if user selected placeholder, value is ""
-            val = sizeSelect.value || val;
-          }
+          if (sizeSelect) val = sizeSelect.value || val;
         }
-        // fallback: pull sample value from variants data first entry
+        // fallback: sample from variants JSON
         if (!val) {
           var variantsScript = modalEl.querySelector('script.hp-variants-data');
           if (variantsScript) {
@@ -496,8 +495,10 @@
       var sizeSelectEl = modal.querySelector('select.hp-size');
       var sizeIndex = sizeSelectEl ? parseInt(sizeSelectEl.getAttribute('data-size-index'), 10) : null;
 
-      // color buttons
+      // color buttons list
       var colorBtns = Array.prototype.slice.call(modal.querySelectorAll('.hp-color'));
+
+      // click behavior for color buttons
       colorBtns.forEach(function(btn){
         btn.addEventListener('click', function(e){
           e.preventDefault();
@@ -505,7 +506,7 @@
           btn.classList.add('selected');
           btn.setAttribute('aria-pressed','true');
 
-          // set left-border color based on value (try hex then color name map)
+          // set left-border color based on value (try #hex then color map)
           var colorVal = (btn.getAttribute('data-option-value') || '').trim();
           var hex = null;
           if (colorVal.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i)) {
@@ -517,7 +518,6 @@
           if (hex) {
             btn.style.borderLeftColor = hex;
           } else {
-            // fallback to black
             btn.style.borderLeftColor = '#111';
           }
 
@@ -525,19 +525,18 @@
         }, false);
       });
 
-      // size select
+      // size select change
       if (sizeSelectEl) {
         sizeSelectEl.addEventListener('change', function(){
           updateSelectionAndVariant(modal, variantsMap, optionCount, colorIndex, sizeIndex);
         }, false);
       }
 
-      // attempt default selection: first color button (if exists)
+      // default selection: pick first color (if exists) to avoid empty state
       if (colorBtns.length) {
         var first = colorBtns[0];
         first.classList.add('selected');
         first.setAttribute('aria-pressed','true');
-        // set border color for first if possible
         var firstVal = (first.getAttribute('data-option-value') || '').trim();
         var fh = null;
         if (firstVal.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i)) fh = firstVal;
@@ -545,7 +544,7 @@
         first.style.borderLeftColor = fh || '#111';
       }
 
-      // Update selection & hidden variant input
+      // update hidden variant input and price
       function updateSelectionAndVariant(modalEl, variantsMapping, optCount, cIndex, sIndex) {
         var candidateKey = buildCandidateKey(modalEl, optCount, cIndex, sIndex);
         var variantObj = findVariantObj(variantsMapping, candidateKey);
@@ -557,7 +556,7 @@
         }
       }
 
-      // Initialize variant according to defaults
+      // initialize variant mapping based on defaults
       updateSelectionAndVariant(modal, variantsMap, optionCount, colorIndex, sizeIndex);
     });
 
