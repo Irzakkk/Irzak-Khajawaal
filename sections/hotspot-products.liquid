@@ -69,9 +69,21 @@
 
 /* Controls Style */
 .label { font-weight:600; margin-bottom:7px;}
-.hp-color-wrap { display:flex; border:1px solid #ddd; background:#fff; min-height:39px;}
-.hp-color { flex:1; border:0; padding:0 10px; display:flex; align-items:center; justify-content:center; font-weight:700;
-  background:transparent; color:#111; font-size:15px; cursor:pointer; }
+.hp-color-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1px solid #ddd;
+  background: #fff;
+  min-height: 39px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.hp-color {
+  flex: 1 0 auto;
+  min-width: 70px;
+  margin: 0;
+}
+
 .hp-color + .hp-color { border-left:1px solid #eee;}
 .hp-color.selected { background:#fff;}
 .hp-size { padding:7px; border:1px solid #ddd; font-size:14px; width:100%; border-radius:0;}
@@ -79,7 +91,19 @@
 .hp-add::after { content:"→"; margin-left:6px; }
 
 /* Close Button */
-.hp-modal-close { position:absolute; right:10px; top:10px; background:transparent; border:0; font-size:22px; cursor:pointer; color:#222;}
+.hp-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  font-weight: bold;
+  color: #222;
+  cursor: pointer;
+  z-index: 100;
+}
+
 </style>
 
 <div class="hp-inner">
@@ -170,22 +194,22 @@
               <!-- DEDUPED COLOR ROW -->
               {% if prod.options.size > 0 and color_option_index != '' %}
                 {% assign seen_colors = '' | split: ',' %}
-                <span class="label">Color</span>
-                <div class="hp-color-wrap" data-color-index="{{ color_option_index }}">
-                  {% for var in prod.variants %}
-  {% assign raw_color_val = var.options[color_option_index] | default: '' %}
-  {% assign color_key = raw_color_val | strip | downcase %}
-  {% if color_key != '' %}
-    {% unless seen_colors contains color_key %}
-      {% assign seen_colors = seen_colors | push: color_key %}
-      <button type="button" class="hp-color" data-option-index="{{ color_option_index }}" data-option-value="{{ raw_color_val | escape }}" aria-pressed="false">
-        {{ raw_color_val }}
-      </button>
-    {% endunless %}
-  {% endif %}
-{% endfor %}
+<div class="hp-color-wrap" data-color-index="{{ color_option_index }}">
+  {% for var in prod.variants %}
+    {% assign raw_color_val = var.options[color_option_index] | default: '' %}
+    {% assign color_key = raw_color_val | strip | downcase %}
+    {% if color_key != '' %}
+      {% unless seen_colors contains color_key %}
+        {% assign seen_colors = seen_colors | push: color_key %}
+        <button type="button" class="hp-color" data-option-index="{{ color_option_index }}"
+                data-option-value="{{ raw_color_val | escape }}" aria-pressed="false">
+          {{ raw_color_val }}
+        </button>
+      {% endunless %}
+    {% endif %}
+  {% endfor %}
+</div>
 
-                </div>
               {% endif %}
 
               <!-- DEDUPED SIZE SELECT -->
