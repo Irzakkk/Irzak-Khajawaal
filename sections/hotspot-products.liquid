@@ -63,115 +63,142 @@
 
 <section id="hotspot-products-{{ section.id }}" data-section-id="{{ section.id }}" class="hotspot-products-section">
 <style>
-  /* Container */
-  #hotspot-products-{{ section.id }} { padding: 20px; font-family: system-ui, -apple-system, Helvetica Neue, Arial; color: #111; }
+  #hotspot-products-{{ section.id }} { padding: 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #111; }
   .hp-grid { display: grid; gap: 18px; grid-template-columns: repeat(3, 1fr); }
   @media (max-width: 989px) { .hp-grid { grid-template-columns: repeat(2, 1fr); } }
-  /* Card */
   .hp-card { position: relative; background: #fff; }
   .hp-image { width: 100%; padding-bottom: 100%; background: #f5f5f5; position: relative; }
   .hp-image img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-  /* Hotspot button */
   .hp-hotspot {
     position: absolute; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.96);
     border: 2px solid rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center;
     cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; z-index: 20;
   }
   .hp-hotspot .hp-plus { font-size: 18px; font-weight: 700; color: #111; }
-  /* Modal */
   .hp-modal {
     position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
     background: rgba(0,0,0,0.45); z-index: 2200; opacity: 0; transition: opacity 0.26s ease;
-    padding: 28px; overflow-y: auto;
+    padding: 24px; overflow-y: auto;
   }
-  .hp-modal.open {
-    display: flex;
-    opacity: 1;
-  }
+  .hp-modal.open { display: flex; opacity: 1; }
   .hp-modal__card {
-    background: #fff; border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-    max-width: 420px; width: 100%; min-height: 580px; padding: 0;
+    background: #fff; border-radius: 14px; box-shadow: 0 28px 90px rgba(0,0,0,.12);
+    max-width: 395px; width: 100%; min-height: 550px;
     display: flex; flex-direction: column; position: relative;
+    padding: 0;
   }
-  /* Close button */
   .hp-modal-close {
-    position: absolute; top: 14px; right: 14px;
+    position: absolute; top: 18px; right: 18px;
     background: transparent; border: none;
-    font-size: 28px; font-weight: bold; color: #222;
+    font-size: 25px; color: #111; font-weight: 500;
     cursor: pointer; z-index: 2000; line-height: 1;
   }
-  /* Modal top: image left, info right */
   .hp-top {
-    display: grid; grid-template-columns: 140px 1fr; gap: 18px;
-    padding: 24px 24px 0 24px; align-items: start;
+    display: grid; grid-template-columns: 130px 1fr; gap: 16px;
+    padding: 24px 24px 0 24px; align-items: start; min-height: 130px;
   }
-  @media (max-width: 600px) {
-    .hp-top {
-      grid-template-columns: 1fr;
-    }
-  }
-  /* Image container - bigger height */
-  .imgwrap {
-    background: #f6f6f6; min-height: 180px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .imgwrap img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
-  }
-  /* Title, price, desc styling */
+  @media (max-width: 600px) { .hp-top { grid-template-columns: 1fr; padding: 16px; } }
+  .imgwrap { background: #f6f6f6; min-height: 130px; display: flex; align-items: center; justify-content: center; }
+  .imgwrap img { width: 120px; height: 120px; object-fit: cover; border: none; border-radius: 0; }
   .hp-title {
-    font-size: 18px; font-weight: 700; margin: 0 0 6px;
+    font-size: 19px; font-weight: 600; margin: 0 0 8px; color: #111;
+    letter-spacing: 0.01em; line-height: 1.25;
   }
   .hp-price {
-    font-size: 16px; font-weight: 700; margin-bottom: 8px;
+    font-size: 20px; font-weight: 400; margin-bottom: 6px; color: #111;
+    letter-spacing: 0.01em;
   }
   .hp-desc {
-    font-size: 14px; color: #333; margin-top: 0; line-height: 1.5;
+    font-size: 13px; color: #222; margin-top: 0; line-height: 1.5;
   }
-  /* Controls section */
+
   .hp-controls {
-    padding: 18px 24px 24px 24px; border-top: 1px solid #eee;
-    display: flex; flex-direction: column; gap: 14px; flex-grow: 1;
+    padding: 22px 24px 24px 24px;
+    border-top: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
-  /* Labels */
   .label {
-    font-weight: 600; margin-bottom: 8px; font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 7px;
+    letter-spacing: 0.02em;
+    color: #222;
+    font-size: 15px;
+    line-height: 1.45;
   }
-  /* Color buttons container */
   .hp-color-wrap {
-    display: flex; flex-wrap: wrap; border: 1px solid #ddd; background: #fff;
-    min-height: 40px; max-width: 100%; overflow-x: auto;
-    gap: 6px; padding: 4px; border-radius: 4px;
+    display: flex;
+    flex-direction: row;
+    border: 1.5px solid #222;
+    border-radius: 0;
+    background: #fff;
+    min-height: 53px;
+    overflow: hidden;
   }
   .hp-color {
-    flex: 0 0 auto; min-width: 75px; padding: 6px 12px;
-    background: transparent; color: #111; font-weight: 700;
-    font-size: 15px; text-align: center; cursor: pointer; border: none;
-    border-radius: 4px; transition: background-color 0.2s, border-left 0.2s;
+    flex: 1 1 0;
+    padding: 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    cursor: pointer;
+    background: #fff;
+    color: #111;
+    font-size: 21px;
+    text-align: center;
+    border: none;
+    border-right: 1.5px solid #222;
+    border-radius: 0;
+    height: 53px;
+    transition: background-color 0.2s, border-left 0.2s;
   }
-  .hp-color.selected,
-  .hp-color:hover {
-    background: #fff; border-left: 6px solid #111;
+  .hp-color:last-child { border-right: none; }
+  .hp-color.selected {
+    background: #fff;
+    border-left: 4px solid #111;
   }
-  /* Size dropdown */
   .hp-size {
-    width: 100%; padding: 10px 12px; font-size: 14px;
-    border: 1px solid #ddd; border-radius: 4px; cursor: pointer;
+    padding: 13px 12px;
+    font-size: 19px;
+    border: 1.5px solid #222;
+    border-radius: 0;
+    background: #fff;
+    width: 100%;
+    height: 48px;
+    color: #222;
+    appearance: none;
+    font-weight: 400;
   }
-  /* Add to cart button */
+  .hp-size:focus { outline: 2px solid #222; }
   .hp-add {
-    background: #111; color: #fff; padding: 14px; font-weight: 700;
-    width: 100%; border: none; border-radius: 4px; cursor: pointer;
-    display: flex; justify-content: center; align-items: center; gap: 8px;
-    font-size: 15px;
+    background: #111;
+    color: #fff;
+    padding: 16px 0;
+    font-weight: 600;
+    width: 100%;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    font-size: 21px;
+    margin-top: 6px;
   }
   .hp-add::after {
-    content: "→"; margin-left: 6px;
+    content: "→";
+    margin-left: 8px;
+    font-size: 20px;
+    font-weight: 400;
   }
 </style>
 
 <div class="hp-inner">
-  <h2 class="hp-heading">{{ section.settings.heading }}</h2>
+  <h2 class="hp-heading" style="display:none;">{{ section.settings.heading }}</h2>
   <div class="hp-grid" id="hpGrid-{{ section.id }}">
     {%- for block in section.blocks -%}
       {%- assign prod_handle = block.settings.product -%}
@@ -199,7 +226,6 @@
       <div id="hpModal-{{ block.id }}" class="hp-modal" role="dialog" aria-hidden="true">
         <div class="hp-modal__card" role="document">
           <button class="hp-modal-close" aria-label="Close" data-close-modal-id="hpModal-{{ block.id }}">✕</button>
-
           <div class="hp-top">
             <div class="imgwrap">
               {% if block.settings.override_image != blank %}
@@ -217,14 +243,13 @@
                   {% assign first_variant = prod.variants.first %}
                   {{ first_variant.price | money }}
                 </div>
-                <div class="hp-desc">{{ prod.description | strip_html | truncate: 130 }}</div>
+                <div class="hp-desc">{{ prod.description | strip_html | truncate: 135 }}</div>
               {% else %}
                 <h3 class="hp-title">No product selected</h3>
                 <div class="hp-desc">Please select a product for this hotspot in the theme editor.</div>
               {% endif %}
             </div>
           </div>
-
           <div class="hp-controls">
             {% if prod %}
               {% assign color_option_index = '' %}
@@ -269,19 +294,21 @@
 
               <span class="label">Size</span>
               {% assign seen_sizes = '' | split: ',' %}
-              <select class="hp-size" data-size-index="{{ size_option_index }}">
-                <option value="">Choose your size</option>
-                {% for var in prod.variants %}
-                  {% assign size_val = var.options[size_option_index] | default: '' %}
-                  {% assign size_key = size_val | strip | downcase %}
-                  {% if size_key != '' %}
-                    {% unless seen_sizes contains size_key %}
-                      {% assign seen_sizes = seen_sizes | push: size_key %}
-                      <option value="{{ size_val | escape }}">{{ size_val }}</option>
-                    {% endunless %}
-                  {% endif %}
-                {% endfor %}
-              </select>
+              <div style="display:block;width:100%;">
+                <select class="hp-size" data-size-index="{{ size_option_index }}">
+                  <option value="">Choose your size</option>
+                  {% for var in prod.variants %}
+                    {% assign size_val = var.options[size_option_index] | default: '' %}
+                    {% assign size_key = size_val | strip | downcase %}
+                    {% if size_key != '' %}
+                      {% unless seen_sizes contains size_key %}
+                        {% assign seen_sizes = seen_sizes | push: size_key %}
+                        <option value="{{ size_val | escape }}">{{ size_val }}</option>
+                      {% endunless %}
+                    {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
 
               {% assign default_variant = prod.variants.first %}
               <form method="post" action="/cart/add" class="hp-add-form" data-block="{{ block.id }}" novalidate>
@@ -312,57 +339,55 @@
 </div>
 
 <script>
-  (function(){
-    'use strict';
-    var sectionRoot = document.querySelector('[id^="hotspot-products-"]');
-    if (!sectionRoot) return;
-
-    sectionRoot.addEventListener('click', function(e){
-      var btn = e.target.closest && e.target.closest('.hp-hotspot');
-      if (!btn) return;
-      e.preventDefault();
-      var modal = document.getElementById(btn.getAttribute('data-open-modal-id'));
-      if (!modal) return;
-      modal.classList.add('open');
-      modal.setAttribute('aria-hidden','false');
-      document.documentElement.style.overflow = 'hidden';
-      document.body.style.overflow = 'hidden';
-      var focus = modal.querySelector('select, button, input, a, textarea');
-      if (focus) focus.focus();
-    });
-
-    sectionRoot.addEventListener('click', function(e){
-      var close = e.target.closest && e.target.closest('[data-close-modal-id]');
-      if (close) {
-        var mid = close.getAttribute('data-close-modal-id');
-        var modal = document.getElementById(mid);
-        if (modal) {
-          modal.classList.remove('open');
-          modal.setAttribute('aria-hidden','true');
-          document.documentElement.style.overflow='';
-          document.body.style.overflow='';
-        }
-        return;
-      }
-      var overlay = e.target.closest && e.target.closest('.hp-modal.open');
-      if (overlay && e.target === overlay) {
-        overlay.classList.remove('open');
-        overlay.setAttribute('aria-hidden','true');
+(function(){
+  'use strict';
+  var sectionRoot = document.querySelector('[id^="hotspot-products-"]');
+  if (!sectionRoot) return;
+  sectionRoot.addEventListener('click', function(e){
+    var btn = e.target.closest && e.target.closest('.hp-hotspot');
+    if (!btn) return;
+    e.preventDefault();
+    var modal = document.getElementById(btn.getAttribute('data-open-modal-id'));
+    if (!modal) return;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    var focus = modal.querySelector('select, button, input, a, textarea');
+    if (focus) focus.focus();
+  });
+  sectionRoot.addEventListener('click', function(e){
+    var close = e.target.closest && e.target.closest('[data-close-modal-id]');
+    if (close) {
+      var mid = close.getAttribute('data-close-modal-id');
+      var modal = document.getElementById(mid);
+      if (modal) {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden','true');
         document.documentElement.style.overflow='';
         document.body.style.overflow='';
       }
-    });
-
-    document.addEventListener('keydown', function(e){
-      if (e.key === 'Escape' || e.key === 'Esc') {
-        var opens = sectionRoot.querySelectorAll('.hp-modal.open');
-        opens.forEach(function(m){
-          m.classList.remove('open');
-          m.setAttribute('aria-hidden','true');
-        });
-        document.documentElement.style.overflow='';
-        document.body.style.overflow='';
-      }
-    });
-  })();
+      return;
+    }
+    var overlay = e.target.closest && e.target.closest('.hp-modal.open');
+    if (overlay && e.target === overlay) {
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden','true');
+      document.documentElement.style.overflow='';
+      document.body.style.overflow='';
+    }
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      var opens = sectionRoot.querySelectorAll('.hp-modal.open');
+      opens.forEach(function(m){
+        m.classList.remove('open');
+        m.setAttribute('aria-hidden','true');
+      });
+      document.documentElement.style.overflow='';
+      document.body.style.overflow='';
+    }
+  });
+})();
 </script>
+</section>
