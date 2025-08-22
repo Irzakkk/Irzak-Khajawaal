@@ -252,6 +252,23 @@
   // Variant logic unchanged, preserves deduplication and structure
 
   /* (The rest of your original JS logic remains as-is, since it works for clickable hot-spot modals and variant selection) */
+  var sectionRoot = document.querySelector('[id^="hotspot-products-"]');
+if (!sectionRoot) return;
+
+sectionRoot.addEventListener('click', function(e){
+  var btn = e.target.closest && e.target.closest('.hp-hotspot');
+  if (!btn) return;
+  e.preventDefault();
+  var modal = document.getElementById(btn.getAttribute('data-open-modal-id'));
+  if (!modal) return;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden','false');
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+  var focus = modal.querySelector('select, button, input, a, textarea');
+  if (focus) focus.focus();
+});
+
 
 })();
 </script>
