@@ -42,6 +42,7 @@
         "cta_label": "SHOP NOW",
         "cta_link": "",
         "bottom_strip_text": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL",
+        "bottom_strip_text_mobile": "SUSTAINABLE, ETHICALLY MADE CLOTHES",
         "section_bg": "#ffffff"
       }
     }
