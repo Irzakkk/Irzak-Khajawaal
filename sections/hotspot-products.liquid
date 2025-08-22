@@ -1,15 +1,12 @@
 {%- comment -%}
   sections/hotspot-products.liquid
-  - Hotspot product grid (editable blocks: product picker)
-  - Up to 6 blocks. Grid: 3 cols desktop, 2 cols mobile
-  - Clicking hotspot opens modal quick-view card:
-      * small product image (left), right: title / price / description
-      * color buttons inside one bordered row (vertical dividers)
-      * size dropdown
-      * full-width Add to cart (quantity fixed to 1)
-  - Deduplicated color values (strip + downcase)
-  - Buttons border-radius removed (except hotspot)
+  - Hotspot product grid (blocks: product)
+  - Clicking hotspot opens modal quick-view:
+      Top: image (left) + title/price/description (right)
+      Bottom: color row, size select, Add to cart
+  - Deduplicate color values by normalizing (strip + downcase)
   - Per-block hotspot position via block settings (left% / top%)
+  - Keep hotspot round; remove duplicate colors
 {%- endcomment -%}
 
 {% schema %}
@@ -40,108 +37,74 @@
 
 <section id="hotspot-products-{{ section.id }}" data-section-id="{{ section.id }}" class="hotspot-products-section">
   <style>
-    /* Basic layout */
-    #hotspot-products-{{ section.id }} { --hp-gap: 18px; --hp-max-w: 1200px; padding: 20px; box-sizing: border-box; font-family: system-ui, -apple-system, "Helvetica Neue", Arial; }
-    #hotspot-products-{{ section.id }} .hp-inner { max-width: var(--hp-max-w); margin: 0 auto; }
-    #hotspot-products-{{ section.id }} .hp-heading { font-size: 22px; margin: 6px 0 18px; font-weight:700; }
+    /* Layout */
+    #hotspot-products-{{ section.id }} { --hp-gap:18px; --hp-max-w:1200px; padding:20px; box-sizing:border-box; font-family: system-ui, -apple-system, "Helvetica Neue", Arial; color:#111; }
+    #hotspot-products-{{ section.id }} .hp-inner { max-width:var(--hp-max-w); margin:0 auto; }
+    #hotspot-products-{{ section.id }} .hp-heading { font-size:22px; margin:6px 0 18px; font-weight:700; }
 
     /* Grid */
-    #hotspot-products-{{ section.id }} .hp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--hp-gap); }
-    @media (max-width: 989px) {
-      #hotspot-products-{{ section.id }} .hp-grid { grid-template-columns: repeat(2, 1fr); }
-    }
+    #hotspot-products-{{ section.id }} .hp-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:var(--hp-gap); }
+    @media (max-width:989px) { #hotspot-products-{{ section.id }} .hp-grid { grid-template-columns: repeat(2,1fr); } }
 
-    /* Card thumbnail */
-    #hotspot-products-{{ section.id }} .hp-card { position: relative; overflow: hidden; background: #fff; }
-    #hotspot-products-{{ section.id }} .hp-image { display:block; width:100%; height: 0; padding-bottom: 100%; position:relative; background:#f5f5f5; }
-    #hotspot-products-{{ section.id }} .hp-image img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    /* Thumbnail */
+    #hotspot-products-{{ section.id }} .hp-card { position:relative; overflow:hidden; background:#fff; }
+    #hotspot-products-{{ section.id }} .hp-image { width:100%; padding-bottom:100%; position:relative; background:#f5f5f5; }
+    #hotspot-products-{{ section.id }} .hp-image img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
 
-    /* Hotspot button (round) */
+    /* Hotspot (round) */
     #hotspot-products-{{ section.id }} .hp-hotspot {
-      position: absolute;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.96);
-      border: 2px solid rgba(0,0,0,0.10);
-      display:flex; align-items:center; justify-content:center;
-      cursor:pointer; transition: transform .12s ease, box-shadow .12s ease; z-index: 12; padding:0;
+      position:absolute; width:36px; height:36px; border-radius:50%;
+      background: rgba(255,255,255,0.96); border:2px solid rgba(0,0,0,0.10);
+      display:flex; align-items:center; justify-content:center; cursor:pointer;
+      transition: transform .12s ease, box-shadow .12s ease; z-index:12; padding:0;
     }
     #hotspot-products-{{ section.id }} .hp-hotspot .hp-plus { font-size:18px; font-weight:700; color:#111; line-height:1; }
 
-    /* Modal overlay & card */
-    #hotspot-products-{{ section.id }} .hp-modal { position: fixed; inset: 0; display:none; align-items:center; justify-content:center; z-index:2200; background: rgba(0,0,0,0.45); opacity:0; transition: opacity .26s ease; padding: 28px; overflow-y:auto; }
+    /* Modal overlay + card */
+    #hotspot-products-{{ section.id }} .hp-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); z-index:2200; opacity:0; transition:opacity .26s ease; padding:28px; overflow-y:auto;}
     #hotspot-products-{{ section.id }} .hp-modal.open { display:flex; opacity:1; }
-    #hotspot-products-{{ section.id }} .hp-modal__card { width:100%; max-width: 760px; background:#fff; border-radius:10px; overflow:hidden; transform: translateY(18px) scale(.995); transition: transform .22s cubic-bezier(.2,.8,.2,1); box-shadow: 0 28px 90px rgba(0,0,0,.28); }
-    #hotspot-products-{{ section.id }} .hp-modal.open .hp-modal__card { transform: translateY(0) scale(1); }
+    #hotspot-products-{{ section.id }} .hp-modal__card { width:100%; max-width:760px; background:#fff; border-radius:10px; overflow:hidden; transform:translateY(18px) scale(.995); transition:transform .22s cubic-bezier(.2,.8,.2,1); box-shadow:0 28px 90px rgba(0,0,0,.28); }
+    #hotspot-products-{{ section.id }} .hp-modal.open .hp-modal__card { transform:none; }
 
-    /* Two-column: small image left, content right (matches screenshot) */
-    #hotspot-products-{{ section.id }} .hp-modal__grid { display:grid; grid-template-columns: 120px 1fr; gap: 18px; align-items: start; padding: 18px; }
-    @media (max-width: 640px) {
-      #hotspot-products-{{ section.id }} .hp-modal__grid { grid-template-columns: 1fr; gap: 10px; }
-      #hotspot-products-{{ section.id }} .hp-modal__card { max-width: 100%; border-radius: 0; }
-    }
+    /* Top: image left, text right */
+    #hotspot-products-{{ section.id }} .hp-top { display:grid; grid-template-columns: 140px 1fr; gap:18px; padding:18px 18px 0 18px; align-items:start; }
+    @media (max-width:640px) { #hotspot-products-{{ section.id }} .hp-top { grid-template-columns:1fr; } }
 
-    /* Left image */
-    #hotspot-products-{{ section.id }} .hp-modal__image { background:#f6f6f6; display:flex; align-items:center; justify-content:center; min-height: 120px; }
-    #hotspot-products-{{ section.id }} .hp-modal__image img { width:100%; height:100%; object-fit:cover; display:block; }
+    #hotspot-products-{{ section.id }} .hp-top .imgwrap { background:#f6f6f6; min-height:120px; display:flex; align-items:center; justify-content:center; }
+    #hotspot-products-{{ section.id }} .hp-top .imgwrap img { width:100%; height:100%; object-fit:cover; display:block; }
 
-    /* Right content */
-    #hotspot-products-{{ section.id }} .hp-modal__content { padding: 6px 0 4px 0; display:flex; flex-direction:column; }
     #hotspot-products-{{ section.id }} .hp-title { margin:0 0 6px; font-size:18px; font-weight:700; color:#111; }
-    #hotspot-products-{{ section.id }} .hp-price { margin-top:6px; font-size:16px; font-weight:700; color:#111; }
-    #hotspot-products-{{ section.id }} .hp-desc { margin-top:10px; font-size:13px; color:#333; line-height:1.5; max-height:140px; overflow:auto; }
+    #hotspot-products-{{ section.id }} .hp-price { margin-top:6px; font-size:16px; font-weight:700; }
+    #hotspot-products-{{ section.id }} .hp-desc { margin-top:10px; font-size:13px; line-height:1.5; color:#333; max-height:140px; overflow:auto; }
 
-    /* Label above variant controls */
-    #hotspot-products-{{ section.id }} .label { display:block; margin-top:14px; margin-bottom:8px; font-weight:600; color:#111; }
+    /* Bottom controls block (separate) */
+    #hotspot-products-{{ section.id }} .hp-controls { padding:18px; border-top:1px solid #eee; display:flex; flex-direction:column; gap:12px; }
 
-    /* Color row: one bordered container with buttons inside */
-    #hotspot-products-{{ section.id }} .hp-color-wrap {
-      border:1px solid #ddd;
-      display:flex;
-      align-items:stretch;
-      overflow:hidden;
-      background:#fff;
-      min-height:46px;
-    }
-    #hotspot-products-{{ section.id }} .hp-color {
-      flex:1 1 0;
-      border:0;
-      margin:0;
-      padding:0 14px;
-      display:flex; align-items:center; justify-content:center;
-      font-weight:700;
-      cursor:pointer;
-      background:transparent;
-      color:#111;
-      text-align:center;
-      font-size:15px;
-    }
-    /* vertical divider between adjacent buttons */
-    #hotspot-products-{{ section.id }} .hp-color + .hp-color { border-left:1px solid #ddd; }
+    .label { display:block; margin-bottom:6px; font-weight:600; color:#111; }
 
-    /* Selected: JS sets thick left accent by inline style */
+    /* Color buttons row inside one bordered container */
+    #hotspot-products-{{ section.id }} .hp-color-wrap { border:1px solid #ddd; display:flex; align-items:stretch; overflow:hidden; background:#fff; min-height:46px; }
+    #hotspot-products-{{ section.id }} .hp-color { flex:1 1 0; border:0; padding:0 14px; display:flex; align-items:center; justify-content:center; font-weight:700; cursor:pointer; background:transparent; color:#111; font-size:15px; text-align:center; }
+    #hotspot-products-{{ section.id }} .hp-color + .hp-color { border-left:1px solid #ddd; } /* vertical separators */
+
+    /* Selected state: JS sets a left-accent border (inline style) */
     #hotspot-products-{{ section.id }} .hp-color.selected { background:#fff; }
 
     /* Size select */
-    #hotspot-products-{{ section.id }} .hp-size { margin-top:12px; padding:12px; border:1px solid #ddd; font-size:14px; width:100%; }
+    #hotspot-products-{{ section.id }} .hp-size { padding:12px; border:1px solid #ddd; font-size:14px; width:100%; }
 
-    /* Add to cart full width (right content) */
-    #hotspot-products-{{ section.id }} .hp-addwrap { margin-top:18px; }
-    #hotspot-products-{{ section.id }} .hp-add { display:inline-flex; width:100%; justify-content:center; align-items:center; gap:10px; padding:14px 18px; background:#000; color:#fff; border:0; font-weight:700; }
-    #hotspot-products-{{ section.id }} .hp-add:after { content: "→"; margin-left:8px; }
+    /* Add to cart (full width) */
+    #hotspot-products-{{ section.id }} .hp-add { background:#000; color:#fff; padding:14px; border:0; font-weight:700; width:100%; display:inline-flex; justify-content:center; align-items:center; gap:8px; }
+    #hotspot-products-{{ section.id }} .hp-add::after { content:"→"; margin-left:6px; }
 
-    /* Remove border-radius on controls (but keep hotspot round) */
-    #hotspot-products-{{ section.id }} .hp-add,
-    #hotspot-products-{{ section.id }} .hp-modal-close,
-    #hotspot-products-{{ section.id }} .hp-color,
-    #hotspot-products-{{ section.id }} .hp-size { border-radius: 0 !important; }
+    /* Remove border radius on controls (but keep hotspot round) */
+    #hotspot-products-{{ section.id }} .hp-add, #hotspot-products-{{ section.id }} .hp-modal-close, #hotspot-products-{{ section.id }} .hp-color, #hotspot-products-{{ section.id }} .hp-size { border-radius:0 !important; }
 
-    /* Close icon */
+    /* Close button */
     #hotspot-products-{{ section.id }} .hp-modal-close { position:absolute; right:10px; top:10px; background:transparent; border:0; font-size:20px; cursor:pointer; color:#111; }
 
-    /* visually-hidden helper */
-    #hotspot-products-{{ section.id }} .visually-hidden { position:absolute !important; height:1px; width:1px; overflow:hidden; clip:rect(1px,1px,1px,1px); white-space:nowrap; }
+    /* helper */
+    .visually-hidden { position:absolute !important; height:1px; width:1px; overflow:hidden; clip:rect(1px,1px,1px,1px); white-space:nowrap; }
   </style>
 
   <div class="hp-inner">
@@ -184,8 +147,9 @@
             <div class="hp-modal__card" role="document">
               <button class="hp-modal-close" aria-label="Close" data-close-modal-id="hpModal-{{ block.id }}">✕</button>
 
-              <div class="hp-modal__grid">
-                <div class="hp-modal__image">
+              {%- comment -%} TOP: image left, text right {%- endcomment -%}
+              <div class="hp-top">
+                <div class="imgwrap">
                   {% if block.settings.override_image != blank %}
                     <img src="{{ block.settings.override_image | img_url: '600x600' }}" alt="{{ prod.title | default: 'Image' }}">
                   {% elsif prod and prod.featured_image %}
@@ -195,123 +159,120 @@
                   {% endif %}
                 </div>
 
-                <div class="hp-modal__content">
+                <div class="hp-top-text">
                   {% if prod %}
                     <h3 id="hpTitle-{{ block.id }}" class="hp-title">{{ prod.title }}</h3>
-
                     <div class="hp-price" data-price-target>
                       {% assign first_variant = prod.variants.first %}
                       {{ first_variant.price | money }}
                     </div>
-
                     <div class="hp-desc">{{ prod.description | strip_html | truncate: 260 }}</div>
+                  {% else %}
+                    <h3 class="hp-title">No product selected</h3>
+                    <div class="hp-desc">Please select a product for this hotspot in the theme editor.</div>
+                  {% endif %}
+                </div>
+              </div>
 
-                    {%- comment -%}
-                      Choose option indices: color (if option name contains 'color'/'colour'), size (if contains 'size').
-                      Otherwise fallback: option 0 -> color, option 1 -> size (if exists).
-                    {%- endcomment -%}
-                    {% assign color_option_index = '' %}
-                    {% assign size_option_index = '' %}
-                    {% for opt_name in prod.options %}
-                      {% assign idx = forloop.index0 %}
-                      {% assign name_down = opt_name | downcase %}
-                      {% if color_option_index == '' %}
-                        {% if name_down contains 'color' or name_down contains 'colour' %}
-                          {% assign color_option_index = idx %}
-                        {% endif %}
+              {%- comment -%} BOTTOM: controls (color, size, add) {%- endcomment -%}
+              <div class="hp-controls">
+                {% if prod %}
+                  {%- comment -%}
+                    Determine color & size option indices (safe logic, no inline comparisons)
+                  {%- endcomment -%}
+                  {% assign color_option_index = '' %}
+                  {% assign size_option_index = '' %}
+                  {% for opt_name in prod.options %}
+                    {% assign idx = forloop.index0 %}
+                    {% assign name_down = opt_name | downcase %}
+                    {% if color_option_index == '' %}
+                      {% if name_down contains 'color' or name_down contains 'colour' %}
+                        {% assign color_option_index = idx %}
                       {% endif %}
-                      {% if size_option_index == '' %}
-                        {% if name_down contains 'size' %}
-                          {% assign size_option_index = idx %}
-                        {% endif %}
+                    {% endif %}
+                    {% if size_option_index == '' %}
+                      {% if name_down contains 'size' %}
+                        {% assign size_option_index = idx %}
                       {% endif %}
-                    {% endfor %}
-                    {% if color_option_index == '' and prod.options.size > 0 %}
-                      {% assign color_option_index = 0 %}
                     {% endif %}
-                    {% if size_option_index == '' and prod.options.size > 1 %}
-                      {% assign size_option_index = 1 %}
-                    {% endif %}
+                  {% endfor %}
+                  {% if color_option_index == '' and prod.options.size > 0 %}
+                    {% assign color_option_index = 0 %}
+                  {% endif %}
+                  {% if size_option_index == '' and prod.options.size > 1 %}
+                    {% assign size_option_index = 1 %}
+                  {% endif %}
 
-                    {%- comment -%}
-                      Build variant map lines: "opt1||opt2::variantId::available::price"
-                    {%- endcomment -%}
-                    {% assign variants_map = '' | split: ',' %}
-                    {% for var in prod.variants %}
-                      {% assign key = var.options | join: '||' %}
-                      {% capture map_item %}{{ key }}::{{ var.id }}::{{ var.available }}::{{ var.price | money_without_currency }}{% endcapture %}
-                      {% assign variants_map = variants_map | push: map_item %}
-                    {% endfor %}
-                    {% assign variants_json = variants_map | json %}
+                  {%- comment -%} Build variants map lines for JS: "opt1||opt2::variantId::available::price" {%- endcomment -%}
+                  {% assign variants_map = '' | split: ',' %}
+                  {% for var in prod.variants %}
+                    {% assign key = var.options | join: '||' %}
+                    {% capture map_item %}{{ key }}::{{ var.id }}::{{ var.available }}::{{ var.price | money_without_currency }}{% endcapture %}
+                    {% assign variants_map = variants_map | push: map_item %}
+                  {% endfor %}
+                  {% assign variants_json = variants_map | json %}
 
-                    {%- comment -%}
-                      Unique color list (normalized)
-                    {%- endcomment -%}
-                    {% if prod.options.size > 0 and color_option_index != '' %}
-                      {% assign seen_colors = '' | split: ',' %}
-                      {% capture color_buttons %}{% endcapture %}
+                  {%- comment -%} Color dedupe: normalize via strip + downcase when checking uniqueness {%- endcomment -%}
+                  {% if prod.options.size > 0 and color_option_index != '' %}
+                    {% assign seen_colors = '' | split: ',' %}
+                    <span class="label">Color</span>
+                    <div class="hp-color-wrap" data-color-index="{{ color_option_index }}">
                       {% for var in prod.variants %}
                         {% assign raw_color_val = var.options[color_option_index] | default: '' %}
                         {% assign color_key = raw_color_val | strip | downcase %}
                         {% if color_key != '' %}
                           {% unless seen_colors contains color_key %}
                             {% assign seen_colors = seen_colors | push: color_key %}
-                            {% capture btn %}
-                              <button type="button" class="hp-color" data-option-index="{{ color_option_index }}" data-option-value="{{ raw_color_val | escape }}" aria-pressed="false">{{ raw_color_val }}</button>
-                            {% endcapture %}
-                            {% assign color_buttons = color_buttons | append: btn %}
+                            <button
+                              type="button"
+                              class="hp-color"
+                              data-option-index="{{ color_option_index }}"
+                              data-option-value="{{ raw_color_val | escape }}"
+                              aria-pressed="false">
+                              {{ raw_color_val }}
+                            </button>
                           {% endunless %}
                         {% endif %}
                       {% endfor %}
-                      <span class="label">Color</span>
-                      <div class="hp-color-wrap" data-color-index="{{ color_option_index }}">
-                        {{ color_buttons }}
-                      </div>
-                    {% endif %}
-
-                    {%- comment -%}
-                      Unique size list
-                    {%- endcomment -%}
-                    {% if prod.options.size > 0 and size_option_index != '' %}
-                      {% assign seen_sizes = '' | split: ',' %}
-                      <span class="label">Size</span>
-                      <select class="hp-size" data-size-index="{{ size_option_index }}">
-                        <option value="">{{ 'Choose your size' }}</option>
-                        {% for var in prod.variants %}
-                          {% assign size_val = var.options[size_option_index] | default: '' %}
-                          {% assign size_key = size_val | strip | downcase %}
-                          {% if size_key != '' %}
-                            {% unless seen_sizes contains size_key %}
-                              {% assign seen_sizes = seen_sizes | push: size_key %}
-                              <option value="{{ size_val | escape }}">{{ size_val }}</option>
-                            {% endunless %}
-                          {% endif %}
-                        {% endfor %}
-                      </select>
-                    {% endif %}
-
-                    {%- comment -%}
-                      Add to cart form; default variant is first. JS updates hidden id value.
-                    {%- endcomment -%}
-                    {% assign default_variant = prod.variants.first %}
-                    <form method="post" action="/cart/add" class="hp-add-form" data-block="{{ block.id }}" novalidate>
-                      <input type="hidden" name="id" value="{{ default_variant.id }}" class="hp-variant-input" />
-                      <input type="hidden" name="quantity" value="1" />
-                      <div class="hp-addwrap">
-                        <button type="submit" class="hp-add">ADD TO CART</button>
-                      </div>
-                    </form>
-
-                    <script type="application/json" class="hp-variants-data" data-block="{{ block.id }}">
-                      {{ variants_json }}
-                    </script>
-
-                  {% else %}
-                    <div class="hp-title">No product selected</div>
-                    <div class="hp-note">Please select a product for this hotspot in the theme editor.</div>
+                    </div>
                   {% endif %}
-                </div>
+
+                  {%- comment -%} Size dropdown - unique normalized values {%- endcomment -%}
+                  {% if prod.options.size > 0 and size_option_index != '' %}
+                    {% assign seen_sizes = '' | split: ',' %}
+                    <span class="label">Size</span>
+                    <select class="hp-size" data-size-index="{{ size_option_index }}">
+                      <option value="">{{ 'Choose your size' }}</option>
+                      {% for var in prod.variants %}
+                        {% assign size_val = var.options[size_option_index] | default: '' %}
+                        {% assign size_key = size_val | strip | downcase %}
+                        {% if size_key != '' %}
+                          {% unless seen_sizes contains size_key %}
+                            {% assign seen_sizes = seen_sizes | push: size_key %}
+                            <option value="{{ size_val | escape }}">{{ size_val }}</option>
+                          {% endunless %}
+                        {% endif %}
+                      {% endfor %}
+                    </select>
+                  {% endif %}
+
+                  {%- comment -%} Add to cart form - default variant first; JS updates id when user picks options {%- endcomment -%}
+                  {% assign default_variant = prod.variants.first %}
+                  <form method="post" action="/cart/add" class="hp-add-form" data-block="{{ block.id }}" novalidate>
+                    <input type="hidden" name="id" value="{{ default_variant.id }}" class="hp-variant-input" />
+                    <input type="hidden" name="quantity" value="1" />
+                    <div>
+                      <button type="submit" class="hp-add">ADD TO CART</button>
+                    </div>
+                  </form>
+
+                  {%- comment -%} Provide variants JSON for JS {%- endcomment -%}
+                  <script type="application/json" class="hp-variants-data" data-block="{{ block.id }}">
+                    {{ variants_json }}
+                  </script>
+                {% endif %}
               </div>
+
             </div>
           </div>
         </div>
@@ -325,54 +286,57 @@
     var sectionRoot = document.querySelector('[id^="hotspot-products-"]');
     if (!sectionRoot) return;
 
-    // basic color name -> hex map (extend if you need)
+    // simple color name -> hex map (extend if needed)
     var colorNameToHex = {
       "black":"#111111","white":"#ffffff","red":"#d32f2f","blue":"#1976d2","green":"#388e3c",
       "grey":"#9e9e9e","gray":"#9e9e9e","beige":"#d6c6a8","brown":"#7b5e57","yellow":"#f6d13d",
       "pink":"#e91e63","purple":"#7b1fa2"
     };
 
-    function parseVariantsData(scriptEl) {
+    // parse our variants JSON (array of "opt1||opt2::variantId::available::price")
+    function parseVariantsData(scriptEl){
       try {
         var raw = scriptEl.textContent || scriptEl.innerText || '[]';
         var arr = JSON.parse(raw);
         var map = {};
-        for (var i = 0; i < arr.length; i++) {
-          var parts = arr[i].split('::');
+        arr.forEach(function(item){
+          var parts = item.split('::');
           var key = parts[0];
           var vid = parts[1];
           var available = (parts[2] === 'true' || parts[2] === 'True' || parts[2] === '1');
           var price = parts[3] || '';
           map[key] = { id: vid, available: available, price: price };
-        }
+        });
         return map;
       } catch (e) {
         return {};
       }
     }
 
-    function buildCandidateKey(modalEl, optionCount, colorIndex, sizeIndex) {
+    // Build candidate key "opt1||opt2||..."
+    function buildCandidateKey(modalEl, optionCount, colorIndex, sizeIndex){
       var selected = [];
-      for (var i = 0; i < optionCount; i++) {
+      for (var i = 0; i < optionCount; i++){
         var val = '';
-        if (colorIndex !== null && colorIndex === i) {
-          var colorBtn = modalEl.querySelector('.hp-color.selected[data-option-index="'+colorIndex+'"]');
-          if (colorBtn) val = colorBtn.getAttribute('data-option-value') || '';
+        if (colorIndex !== null && colorIndex === i){
+          var btn = modalEl.querySelector('.hp-color.selected[data-option-index="'+colorIndex+'"]');
+          if (btn) val = btn.getAttribute('data-option-value') || '';
         }
-        if (sizeIndex !== null && sizeIndex === i) {
-          var sizeSelect = modalEl.querySelector('select.hp-size[data-size-index="'+sizeIndex+'"]');
-          if (sizeSelect) val = sizeSelect.value || val;
+        if (sizeIndex !== null && sizeIndex === i){
+          var sel = modalEl.querySelector('select.hp-size[data-size-index="'+sizeIndex+'"]');
+          if (sel) val = sel.value || val;
         }
-        if (!val) {
-          var variantsScript = modalEl.querySelector('script.hp-variants-data');
-          if (variantsScript) {
+        if (!val){
+          // sample from variants JSON
+          var script = modalEl.querySelector('script.hp-variants-data');
+          if (script){
             try {
-              var arr = JSON.parse(variantsScript.textContent || variantsScript.innerText || '[]');
-              if (arr.length) {
-                var sampleParts = arr[0].split('::')[0].split('||');
+              var a = JSON.parse(script.textContent || script.innerText || '[]');
+              if (a.length){
+                var sampleParts = a[0].split('::')[0].split('||');
                 val = sampleParts[i] || '';
               }
-            } catch (e) {}
+            } catch (err) {}
           }
         }
         selected.push(val);
@@ -380,23 +344,24 @@
       return selected.join('||');
     }
 
-    function findVariantObj(map, candidateKey) {
+    function findVariantObj(map, candidateKey){
       if (!map) return null;
       if (map[candidateKey]) return map[candidateKey];
+      // partial-match fallback: non-empty selected parts must match
       var keys = Object.keys(map);
-      for (var k = 0; k < keys.length; k++) {
+      for (var k=0; k<keys.length; k++){
         var mp = keys[k].split('||');
-        var cand = candidateKey.split('||');
+        var cp = candidateKey.split('||');
         var ok = true;
-        for (var i = 0; i < mp.length; i++) {
-          if (cand[i] && cand[i] !== mp[i]) { ok = false; break; }
+        for (var i=0; i<mp.length; i++){
+          if (cp[i] && cp[i] !== mp[i]) { ok = false; break; }
         }
         if (ok) return map[keys[k]];
       }
       return null;
     }
 
-    // Open modal on hotspot click
+    // open modal when hotspot clicked
     sectionRoot.addEventListener('click', function(e){
       var btn = e.target.closest && e.target.closest('.hp-hotspot');
       if (!btn) return;
@@ -405,11 +370,11 @@
       if (!modal) return;
       modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
       document.documentElement.style.overflow = 'hidden'; document.body.style.overflow = 'hidden';
-      var focusEl = modal.querySelector('select, button, input, a, textarea');
-      if (focusEl) focusEl.focus();
+      var focus = modal.querySelector('select, button, input, a, textarea');
+      if (focus) focus.focus();
     });
 
-    // Close modal: close button, overlay, ESC
+    // close modal
     sectionRoot.addEventListener('click', function(e){
       var close = e.target.closest && e.target.closest('[data-close-modal-id]');
       if (close) {
@@ -432,12 +397,11 @@
       }
     });
 
-    // Wire-up each modal instance
+    // wire each modal's controls
     var modals = sectionRoot.querySelectorAll('.hp-modal');
     modals.forEach(function(modal){
       var variantsScript = modal.querySelector('script.hp-variants-data');
       var variantsMap = variantsScript ? parseVariantsData(variantsScript) : {};
-
       var sampleKey = Object.keys(variantsMap)[0] || '';
       var optionCount = sampleKey ? sampleKey.split('||').length : 1;
 
@@ -448,14 +412,14 @@
 
       var colorBtns = Array.prototype.slice.call(modal.querySelectorAll('.hp-color'));
 
-      // click behaviour for color buttons
+      // click color
       colorBtns.forEach(function(btn){
         btn.addEventListener('click', function(ev){
           ev.preventDefault();
-          colorBtns.forEach(function(b){ b.classList.remove('selected'); b.setAttribute('aria-pressed','false'); b.style.borderLeft = ''; b.style.background = ''; });
+          colorBtns.forEach(function(b){ b.classList.remove('selected'); b.setAttribute('aria-pressed','false'); b.style.borderLeft=''; b.style.background=''; });
           btn.classList.add('selected'); btn.setAttribute('aria-pressed','true');
 
-          // determine left accent color (hex) from label or hex literal
+          // set left accent color
           var val = (btn.getAttribute('data-option-value') || '').trim();
           var hex = null;
           if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(val)) hex = val;
@@ -467,20 +431,21 @@
         }, false);
       });
 
+      // size change
       if (sizeSelect) {
         sizeSelect.addEventListener('change', function(){ updateVariant(); }, false);
       }
 
-      // default: select first color if present
+      // default selection: pick first color if present
       if (colorBtns.length) {
-        var f = colorBtns[0];
-        f.classList.add('selected'); f.setAttribute('aria-pressed','true');
-        var fv = (f.getAttribute('data-option-value') || '').trim();
+        var first = colorBtns[0];
+        first.classList.add('selected'); first.setAttribute('aria-pressed','true');
+        var fv = (first.getAttribute('data-option-value') || '').trim();
         var fhex = null;
         if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(fv)) fhex = fv;
         else if (fv && colorNameToHex[fv.toLowerCase()]) fhex = colorNameToHex[fv.toLowerCase()];
-        f.style.borderLeft = '6px solid ' + (fhex || '#111');
-        f.style.background = '#fff';
+        first.style.borderLeft = '6px solid ' + (fhex || '#111');
+        first.style.background = '#fff';
       }
 
       function updateVariant(){
@@ -494,7 +459,7 @@
         }
       }
 
-      // initial
+      // initial populate
       updateVariant();
     });
 
