@@ -69,21 +69,9 @@
 
 /* Controls Style */
 .label { font-weight:600; margin-bottom:7px;}
-.hp-color-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  border: 1px solid #ddd;
-  background: #fff;
-  min-height: 39px;
-  max-width: 100%;
-  overflow-x: auto;
-}
-.hp-color {
-  flex: 1 0 auto;
-  min-width: 70px;
-  margin: 0;
-}
-
+.hp-color-wrap { display:flex; border:1px solid #ddd; background:#fff; min-height:39px;}
+.hp-color { flex:1; border:0; padding:0 10px; display:flex; align-items:center; justify-content:center; font-weight:700;
+  background:transparent; color:#111; font-size:15px; cursor:pointer; }
 .hp-color + .hp-color { border-left:1px solid #eee;}
 .hp-color.selected { background:#fff;}
 .hp-size { padding:7px; border:1px solid #ddd; font-size:14px; width:100%; border-radius:0;}
