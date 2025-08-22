@@ -5,7 +5,7 @@
   - Click hotspot -> open animated modal with product card:
       * product image, title, price, short description
       * color swatches (box switcher) and size select (dropdown)
-      * quantity (fixed 1) and Add to cart (works)
+      * quantity fixed to 1 and Add to cart (works)
   - All variant mapping rendered server-side in data-variants JSON for JS
   - Buttons border-radius removed (single-line CSS)
   - Per-block hotspot position via settings (left% / top%)
@@ -113,38 +113,41 @@
     #hotspot-products-{{ section.id }} .hp-modal__image img { width:100%; height:100%; object-fit:cover; display:block; }
 
     /* Right content */
-    #hotspot-products-{{ section.id }} .hp-modal__content { padding: 22px 24px; }
-    #hotspot-products-{{ section.id }} .hp-title { font-size:20px; font-weight:700; margin:0 0 8px; }
-    #hotspot-products-{{ section.id }} .hp-price { font-size:18px; font-weight:700; margin-bottom:12px; }
-    #hotspot-products-{{ section.id }} .hp-desc { font-size:13px; color:#333; line-height:1.45; margin-bottom:14px; max-height: 160px; overflow:auto; }
+    #hotspot-products-{{ section.id }} .hp-modal__content { padding: 28px 30px; }
+    #hotspot-products-{{ section.id }} .hp-title { font-size:24px; font-weight:700; margin:0 0 10px; }
+    #hotspot-products-{{ section.id }} .hp-price { font-size:20px; font-weight:700; margin-bottom:14px; }
+    #hotspot-products-{{ section.id }} .hp-desc { font-size:14px; color:#333; line-height:1.6; margin-bottom:18px; max-height: 180px; overflow:auto; }
 
-    /* Color swatches as box switcher */
-    #hotspot-products-{{ section.id }} .hp-colors { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+    /* Color swatches as box switcher - grid-like */
+    #hotspot-products-{{ section.id }} .hp-colors { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
     #hotspot-products-{{ section.id }} .hp-color {
       appearance: none;
       -webkit-appearance: none;
       display:inline-flex; align-items:center; justify-content:center;
-      min-width:60px; padding:10px 12px; border:1px solid #ddd; background:#f4f4f4;
-      cursor:pointer; font-weight:600;
+      min-width:80px; padding:12px 14px; border:1px solid #ddd; background:#f4f4f4;
+      cursor:pointer; font-weight:700; color:#111; text-transform:none;
     }
-    #hotspot-products-{{ section.id }} .hp-color.selected { border-left: 6px solid currentColor; background:#fff; box-shadow:0 6px 18px rgba(0,0,0,.06); }
+    /* left border for selected; we'll set border-left-color in JS for accurate color */
+    #hotspot-products-{{ section.id }} .hp-color.selected { border-left-width:6px; border-left-style:solid; background:#fff; box-shadow:0 6px 18px rgba(0,0,0,.06); }
 
     /* Size select */
-    #hotspot-products-{{ section.id }} .hp-size { display:block; width:100%; padding:10px; border:1px solid #ddd; margin-bottom:12px; }
+    #hotspot-products-{{ section.id }} .hp-size { display:block; width:100%; padding:12px; border:1px solid #ddd; margin-bottom:18px; font-size:14px; }
 
-    /* Add to cart button and quantity */
-    #hotspot-products-{{ section.id }} .hp-addwrap { display:flex; gap:12px; align-items:center; }
-    #hotspot-products-{{ section.id }} .hp-qty { width:64px; padding:10px; border:1px solid #ddd; text-align:center; }
-    #hotspot-products-{{ section.id }} .hp-add { display:inline-flex; align-items:center; gap:10px; padding:12px 18px; background:#000; color:#fff; font-weight:700; text-decoration:none; border:0; cursor:pointer; }
+    /* Add to cart button */
+    #hotspot-products-{{ section.id }} .hp-addwrap { margin-top:6px; }
+    #hotspot-products-{{ section.id }} .hp-add { display:inline-flex; align-items:center; gap:10px; padding:14px 22px; background:#000; color:#fff; font-weight:700; text-decoration:none; border:0; cursor:pointer; }
 
     /* Remove border-radius on buttons (single-line change) */
-    #hotspot-products-{{ section.id }} .hp-add, #hotspot-products-{{ section.id }} .hp-modal-close, #hotspot-products-{{ section.id }} .hp-color { border-radius: 0 !important; }
+    #hotspot-products-{{ section.id }} .hp-add,
+    #hotspot-products-{{ section.id }} .hp-modal-close,
+    #hotspot-products-{{ section.id }} .hp-color,
+    #hotspot-products-{{ section.id }} .hp-hotspot { border-radius: 0 !important; }
 
     /* Close X */
-    #hotspot-products-{{ section.id }} .hp-modal-close { position:absolute; right:12px; top:12px; background:transparent; border:0; font-size:22px; cursor:pointer; color:#111; padding:6px; }
+    #hotspot-products-{{ section.id }} .hp-modal-close { position:absolute; right:12px; top:12px; background:transparent; border:0; font-size:26px; cursor:pointer; color:#111; padding:6px; }
 
-    /* small helpers */
-    #hotspot-products-{{ section.id }} .hp-note { font-size:12px; color:#777; margin-top:8px; }
+    /* small helpers - hidden (we removed textual quantity) */
+    #hotspot-products-{{ section.id }} .hp-note { font-size:12px; color:#777; margin-top:8px; display:none; }
   </style>
 
   <div class="hp-inner">
@@ -213,10 +216,8 @@
                     <div class="hp-desc">{{ prod.description | strip_html | truncate: 260 }}</div>
 
                     {%- comment -%}
-                      Identify color & size option indices (safe checks).
-                      We'll avoid complex inline boolean expressions and use nested checks.
+                      Identify color & size option indices (safe checks). Use empty-string markers.
                     {%- endcomment -%}
-
                     {% assign color_option_index = '' %}
                     {% assign size_option_index = '' %}
 
@@ -256,23 +257,23 @@
                     {% assign variants_json = variants_map | json %}
 
                     {%- comment -%}
-                      Output color buttons (unique values)
+                      Output color buttons (unique values). Use stripped lower-case for seen check.
                     {%- endcomment -%}
                     {% if prod.options.size > 0 and color_option_index != '' %}
                       <div class="hp-colors" data-color-index="{{ color_option_index }}">
                         {% assign seen_colors = '' | split: ',' %}
                         {% for var in prod.variants %}
-                          {% assign color_val = var.options[color_option_index] %}
-                          {% unless seen_colors contains color_val %}
-                            {% assign seen_colors = seen_colors | push: color_val %}
+                          {% assign raw_color_val = var.options[color_option_index] | default: '' %}
+                          {% assign color_val_key = raw_color_val | strip | downcase %}
+                          {% unless seen_colors contains color_val_key %}
+                            {% assign seen_colors = seen_colors | push: color_val_key %}
                             <button type="button"
                               class="hp-color"
                               data-block="{{ block.id }}"
                               data-option-index="{{ color_option_index }}"
-                              data-option-value="{{ color_val | escape }}"
-                              style="color: #111;"
+                              data-option-value="{{ raw_color_val | escape }}"
                               aria-pressed="false">
-                              {{ color_val }}
+                              {{ raw_color_val }}
                             </button>
                           {% endunless %}
                         {% endfor %}
@@ -287,16 +288,15 @@
                         <option value="">{{ 'Choose your size' }}</option>
                         {% assign seen_sizes = '' | split: ',' %}
                         {% for var in prod.variants %}
-                          {% assign size_val = var.options[size_option_index] %}
-                          {% unless seen_sizes contains size_val %}
-                            {% assign seen_sizes = seen_sizes | push: size_val %}
+                          {% assign size_val = var.options[size_option_index] | default: '' %}
+                          {% assign size_key = size_val | strip | downcase %}
+                          {% unless seen_sizes contains size_key %}
+                            {% assign seen_sizes = seen_sizes | push: size_key %}
                             <option value="{{ size_val | escape }}">{{ size_val }}</option>
                           {% endunless %}
                         {% endfor %}
                       </select>
                     {% endif %}
-
-                    <div class="hp-note">Quantity set to 1</div>
 
                     {%- comment -%}
                       Add-to-cart form: default variant is first variant; JS will update the hidden id input when options change.
@@ -306,7 +306,7 @@
                       <input type="hidden" name="id" value="{{ default_variant.id }}" class="hp-variant-input" />
                       <input type="hidden" name="quantity" value="1" />
                       <div class="hp-addwrap">
-                        <button type="submit" class="hp-add">Add to cart</button>
+                        <button type="submit" class="hp-add">ADD TO CART</button>
                       </div>
                     </form>
 
@@ -337,6 +337,95 @@
     var sectionRoot = document.querySelector('[id^="hotspot-products-"]');
     if (!sectionRoot) return;
 
+    // small color-name -> hex map (extend if needed)
+    var colorNameToHex = {
+      "black": "#111111",
+      "white": "#ffffff",
+      "red": "#d32f2f",
+      "blue": "#1976d2",
+      "green": "#388e3c",
+      "grey": "#9e9e9e",
+      "gray": "#9e9e9e",
+      "beige": "#d6c6a8",
+      "brown": "#7b5e57",
+      "yellow": "#f6d13d",
+      "pink": "#e91e63",
+      "purple": "#7b1fa2"
+    };
+
+    // Helper: parse variants data (array of strings "opt1||opt2::id::available::price")
+    function parseVariantsData(scriptEl) {
+      try {
+        var raw = scriptEl.textContent || scriptEl.innerText || '[]';
+        var arr = JSON.parse(raw);
+        var map = {};
+        for (var i = 0; i < arr.length; i++) {
+          var item = arr[i];
+          var parts = item.split('::');
+          var key = parts[0];
+          var vid = parts[1];
+          var available = (parts[2] === 'true' || parts[2] === 'True' || parts[2] === '1');
+          var price = parts[3] || '';
+          map[key] = { id: vid, available: available, price: price };
+        }
+        return map;
+      } catch (err) {
+        return {};
+      }
+    }
+
+    // Build candidate key from optionCount and selection indexes
+    function buildCandidateKey(modalEl, optionCount, colorIndex, sizeIndex) {
+      var selected = [];
+      for (var i = 0; i < optionCount; i++) {
+        var val = '';
+        if (colorIndex !== null && colorIndex === i) {
+          var colorBtn = modalEl.querySelector('.hp-color.selected[data-option-index="'+colorIndex+'"]');
+          if (colorBtn) val = colorBtn.getAttribute('data-option-value') || '';
+        }
+        if (sizeIndex !== null && sizeIndex === i) {
+          var sizeSelect = modalEl.querySelector('select.hp-size[data-size-index="'+sizeIndex+'"]');
+          if (sizeSelect) {
+            // if user selected placeholder, value is ""
+            val = sizeSelect.value || val;
+          }
+        }
+        // fallback: pull sample value from variants data first entry
+        if (!val) {
+          var variantsScript = modalEl.querySelector('script.hp-variants-data');
+          if (variantsScript) {
+            try {
+              var arr = JSON.parse(variantsScript.textContent || variantsScript.innerText || '[]');
+              if (arr.length) {
+                var sampleParts = arr[0].split('::')[0].split('||');
+                val = sampleParts[i] || '';
+              }
+            } catch (e) {}
+          }
+        }
+        selected.push(val);
+      }
+      return selected.join('||');
+    }
+
+    // Find best matching variant object from variantsMap
+    function findVariantObj(variantsMap, candidateKey) {
+      if (!variantsMap) return null;
+      if (variantsMap[candidateKey]) return variantsMap[candidateKey];
+      var keys = Object.keys(variantsMap);
+      for (var k = 0; k < keys.length; k++) {
+        var mapKey = keys[k];
+        var mapParts = mapKey.split('||');
+        var candParts = candidateKey.split('||');
+        var ok = true;
+        for (var i = 0; i < mapParts.length; i++) {
+          if (candParts[i] && candParts[i] !== mapParts[i]) { ok = false; break; }
+        }
+        if (ok) return variantsMap[mapKey];
+      }
+      return null;
+    }
+
     // Open modal when .hp-hotspot clicked
     sectionRoot.addEventListener('click', function(e){
       var btn = e.target.closest && e.target.closest('.hp-hotspot');
@@ -349,8 +438,6 @@
         modal.setAttribute('aria-hidden','false');
         var focusEl = modal.querySelector('button, a, input, select, textarea');
         if (focusEl) focusEl.focus();
-
-        // prevent background scrolling while modal open
         document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
       }
@@ -370,7 +457,6 @@
         }
         return;
       }
-      // clicking overlay outside card closes
       var modalOverlay = e.target.closest && e.target.closest('.hp-modal.open');
       if (modalOverlay && e.target === modalOverlay) {
         modalOverlay.classList.remove('open');
@@ -384,80 +470,14 @@
     document.addEventListener('keydown', function(e){
       if (e.key === 'Escape' || e.key === 'Esc') {
         var openModals = sectionRoot.querySelectorAll('.hp-modal.open');
-        openModals.forEach(function(m){ m.classList.remove('open'); m.setAttribute('aria-hidden','true'); });
+        openModals.forEach(function(m){
+          m.classList.remove('open');
+          m.setAttribute('aria-hidden','true');
+        });
         document.documentElement.style.overflow = '';
         document.body.style.overflow = '';
       }
     });
-
-    // Parse variants JSON string from script tag into mapping
-    function parseVariantsData(scriptEl) {
-      try {
-        var raw = scriptEl.textContent || scriptEl.innerText || '[]';
-        var arr = JSON.parse(raw); // arr of "opt1||opt2::variantId::available::price"
-        var map = {};
-        arr.forEach(function(item){
-          var parts = item.split('::');
-          var key = parts[0];
-          var vid = parts[1];
-          var available = (parts[2] === 'true' || parts[2] === 'True' || parts[2] === '1');
-          var price = parts[3] || '';
-          map[key] = { id: vid, available: available, price: price };
-        });
-        return map;
-      } catch (err) {
-        return {};
-      }
-    }
-
-    // Build candidate key (opt1||opt2...) from selected controls
-    function buildCandidateKey(modalEl, optionCount, colorIndex, sizeIndex) {
-      var selected = [];
-      for (var i = 0; i < optionCount; i++) {
-        var val = '';
-        if (colorIndex !== null && colorIndex === i) {
-          var colorBtn = modalEl.querySelector('.hp-color.selected[data-option-index="'+colorIndex+'"]');
-          if (colorBtn) val = colorBtn.getAttribute('data-option-value') || '';
-        }
-        if (sizeIndex !== null && sizeIndex === i) {
-          var sizeSelect = modalEl.querySelector('select.hp-size[data-size-index="'+sizeIndex+'"]');
-          if (sizeSelect) val = sizeSelect.value || val;
-        }
-        // fallback: take first value from sample variants key if still empty
-        if (!val) {
-          var variantsScript = modalEl.querySelector('script.hp-variants-data');
-          if (variantsScript) {
-            try {
-              var arr = JSON.parse(variantsScript.textContent || variantsScript.innerText || '[]');
-              if (arr.length) {
-                var sampleParts = arr[0].split('::')[0].split('||');
-                val = sampleParts[i] || '';
-              }
-            } catch (e) {}
-          }
-        }
-        selected.push(val);
-      }
-      return selected.join('||');
-    }
-
-    // Find variant obj using exact or partial match
-    function findVariantObj(variantsMap, candidateKey) {
-      if (!variantsMap) return null;
-      if (variantsMap[candidateKey]) return variantsMap[candidateKey];
-      var keys = Object.keys(variantsMap);
-      for (var k = 0; k < keys.length; k++) {
-        var mapKey = keys[k];
-        var mapParts = mapKey.split('||');
-        var candParts = candidateKey.split('||');
-        var ok = true;
-        for (var i = 0; i < mapParts.length; i++) {
-          if (candParts[i] && candParts[i] !== mapParts[i]) { ok = false; break; }
-        }
-        if (ok) return variantsMap[mapKey];
-      }
-      return null;
-    }
 
     // Wire up each modal instance
     var modals = sectionRoot.querySelectorAll('.hp-modal');
@@ -465,31 +485,67 @@
       var variantsScript = modal.querySelector('script.hp-variants-data');
       var variantsMap = variantsScript ? parseVariantsData(variantsScript) : {};
 
+      // number of option segments from any variantsMap key
       var optionCount = 1;
       var sampleKey = Object.keys(variantsMap)[0] || '';
       if (sampleKey) optionCount = sampleKey.split('||').length;
 
+      // get indices
       var colorIndexEl = modal.querySelector('[data-color-index]');
       var colorIndex = colorIndexEl ? parseInt(colorIndexEl.getAttribute('data-color-index'), 10) : null;
       var sizeSelectEl = modal.querySelector('select.hp-size');
       var sizeIndex = sizeSelectEl ? parseInt(sizeSelectEl.getAttribute('data-size-index'), 10) : null;
 
-      var colorBtns = modal.querySelectorAll('.hp-color');
+      // color buttons
+      var colorBtns = Array.prototype.slice.call(modal.querySelectorAll('.hp-color'));
       colorBtns.forEach(function(btn){
         btn.addEventListener('click', function(e){
           e.preventDefault();
-          colorBtns.forEach(function(b){ b.classList.remove('selected'); b.setAttribute('aria-pressed','false'); });
-          btn.classList.add('selected'); btn.setAttribute('aria-pressed','true');
+          colorBtns.forEach(function(b){ b.classList.remove('selected'); b.setAttribute('aria-pressed','false'); b.style.borderLeftColor = ''; });
+          btn.classList.add('selected');
+          btn.setAttribute('aria-pressed','true');
+
+          // set left-border color based on value (try hex then color name map)
+          var colorVal = (btn.getAttribute('data-option-value') || '').trim();
+          var hex = null;
+          if (colorVal.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i)) {
+            hex = colorVal;
+          } else {
+            var k = colorVal.toLowerCase();
+            if (colorNameToHex[k]) hex = colorNameToHex[k];
+          }
+          if (hex) {
+            btn.style.borderLeftColor = hex;
+          } else {
+            // fallback to black
+            btn.style.borderLeftColor = '#111';
+          }
+
           updateSelectionAndVariant(modal, variantsMap, optionCount, colorIndex, sizeIndex);
         }, false);
       });
 
+      // size select
       if (sizeSelectEl) {
         sizeSelectEl.addEventListener('change', function(){
           updateSelectionAndVariant(modal, variantsMap, optionCount, colorIndex, sizeIndex);
         }, false);
       }
 
+      // attempt default selection: first color button (if exists)
+      if (colorBtns.length) {
+        var first = colorBtns[0];
+        first.classList.add('selected');
+        first.setAttribute('aria-pressed','true');
+        // set border color for first if possible
+        var firstVal = (first.getAttribute('data-option-value') || '').trim();
+        var fh = null;
+        if (firstVal.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i)) fh = firstVal;
+        else if (colorNameToHex[firstVal.toLowerCase()]) fh = colorNameToHex[firstVal.toLowerCase()];
+        first.style.borderLeftColor = fh || '#111';
+      }
+
+      // Update selection & hidden variant input
       function updateSelectionAndVariant(modalEl, variantsMapping, optCount, cIndex, sIndex) {
         var candidateKey = buildCandidateKey(modalEl, optCount, cIndex, sIndex);
         var variantObj = findVariantObj(variantsMapping, candidateKey);
@@ -501,17 +557,10 @@
         }
       }
 
-      // Initialize defaults (select first color if present)
-      (function initDefaults() {
-        var firstColor = modal.querySelector('.hp-color');
-        if (firstColor) {
-          firstColor.classList.add('selected');
-          firstColor.setAttribute('aria-pressed','true');
-        }
-        updateSelectionAndVariant(modal, variantsMap, optionCount, colorIndex, sizeIndex);
-      })();
-
+      // Initialize variant according to defaults
+      updateSelectionAndVariant(modal, variantsMap, optionCount, colorIndex, sizeIndex);
     });
+
   })();
   </script>
 
