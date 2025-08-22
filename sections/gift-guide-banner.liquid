@@ -1,8 +1,10 @@
 {%- comment -%}
   sections/gift-guide-banner.liquid
-  - Top header (logo + tagline + choose button) with mobile hamburger menu (fixed)
-  - Then the gift-guide hero banner and bottom strip
-  - Mobile-specific heading/subtext + CSS/JS fixes per user request
+  - Header with logo / tagline / choose button (desktop)
+  - Mobile hamburger (left) opens overlay with tagline + choose button
+  - Hero banner with desktop overlay content bottom-left and mobile content above banner
+  - Mobile CTA inside banner centered bottom, wider, no hover animation
+  - All top texts/buttons editable via schema
 {%- endcomment -%}
 
 {% liquid
@@ -11,187 +13,209 @@
 
 <section id="gift-guide-{{ section.id }}" class="gift-guide-section">
   {%- style -%}
-    /* Root variables */
+    /* ---------- VARIABLES ---------- */
     #gift-guide-{{ section.id }} {
       --gg-max-w: 1280px;
       --gg-yellow: {{ section.settings.choose_btn_bg | default: '#FFE34D' }};
       --gg-bg: {{ section.settings.section_bg | default: '#ffffff' }};
       --gg-text: {{ section.settings.text_color | default: '#111111' }};
+      --gg-black: #000000;
       width: 100%;
       background: var(--gg-bg);
       color: var(--gg-text);
       box-sizing: border-box;
     }
 
-    /* ---------- HEADER (top) ---------- */
+    /* ---------- HEADER ---------- */
     #gift-guide-{{ section.id }} .hb {
-      border-bottom: 1px solid rgba(0,0,0,0.06);
       background: {{ section.settings.header_bg | default: '#ffffff' }};
+      border-bottom: 1px solid rgba(0,0,0,0.06);
       position: relative;
       z-index: 1200;
     }
-    /* inner grid: left logo (desktop), center tagline (desktop), right choose button (desktop) */
     #gift-guide-{{ section.id }} .hb-inner {
       max-width: var(--gg-max-w);
       margin: 0 auto;
-      padding: 8px 16px;
+      padding: 10px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      height: 64px;
-      box-sizing: border-box;
       position: relative;
+      height: 64px;
     }
 
-    /* Logo area */
-    #gift-guide-{{ section.id }} .hb-logo {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: .04em;
-      margin: 0;
-    }
+    /* Left (desktop logo) */
+    #gift-guide-{{ section.id }} .hb-left { display:flex; align-items:center; gap:12px; min-width:160px; }
+    #gift-guide-{{ section.id }} .hb-logo { font-size:22px; font-weight:700; margin:0; color:var(--gg-text); }
 
-    /* Desktop tagline (center) */
+    /* Center tagline desktop */
     #gift-guide-{{ section.id }} .hb-tagline--desktop {
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
       text-align: center;
-      font-size: 13px;
-      line-height: 1.1;
+      font-size:14px;
       white-space: nowrap;
+      color:var(--gg-text);
     }
 
-    /* Choose button (desktop) */
-    #gift-guide-{{ section.id }} .hb-right { display:flex; align-items:center; justify-content:flex-end; min-width:170px; }
+    /* Right choose button (desktop) */
+    #gift-guide-{{ section.id }} .hb-right { min-width:170px; display:flex; justify-content:flex-end; }
     #gift-guide-{{ section.id }} .hb-choose {
-      display:inline-flex; align-items:center; gap:10px; padding:10px 22px; border-radius:6px;
-      background: var(--gg-yellow); color:#000; font-weight:700; text-decoration:none;
-      border:1px solid rgba(0,0,0,.08); transition: background .18s ease, color .18s ease, transform .12s ease, box-shadow .12s ease;
+      display:inline-flex; align-items:center; gap:12px; padding:12px 24px; border-radius:8px;
+      background: var(--gg-yellow); color:#111; font-weight:700; text-decoration:none;
+      border:1px solid rgba(0,0,0,0.06); transition: background .18s ease, color .18s ease, transform .12s ease, box-shadow .12s ease;
     }
-    #gift-guide-{{ section.id }} .hb-choose:hover { background:#000; color:var(--gg-yellow); transform: translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.14); }
+    #gift-guide-{{ section.id }} .hb-choose:hover { background: var(--gg-black); color: var(--gg-yellow); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.12); }
 
-    /* Hamburger (mobile) - positioned on the right on mobile */
+    /* Hamburger (mobile) - placed left on mobile */
     #gift-guide-{{ section.id }} .hb-hamburger {
       display: none;
       background: transparent;
       border: 0;
       font-size: 22px;
-      line-height: 1;
       cursor: pointer;
       padding: 8px;
       width: 44px;
       height: 44px;
-      z-index: 1300;
+      line-height:1;
+      z-index: 9999;
     }
 
-    /* Mobile slide-down menu (contains tagline + choose button) */
+    /* Mobile overlay menu (fixed) */
     #gift-guide-{{ section.id }} .hb-mobile-menu {
-      display:none;
-      position: absolute;
+      display: none;
+      position: fixed;
+      inset: 0 0 auto 0; /* top, left, right anchored, bottom auto so content scrolls */
+      top: 0;
       left: 0;
       right: 0;
-      top: 64px;
-      background: {{ section.settings.header_bg | default: '#fff' }};
-      padding: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.06);
-      z-index:1290;
+      background: {{ section.settings.header_bg | default: '#ffffff' }};
+      padding: 24px 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+      z-index: 9998;
+      overflow-y: auto;
     }
-    #gift-guide-{{ section.id }} .hb-mobile-menu.open { display:block; }
-    #gift-guide-{{ section.id }} .hb-mobile-menu .hb-tagline { margin-bottom:12px; text-align:left; }
+    #gift-guide-{{ section.id }} .hb-mobile-menu.open { display: block; }
 
-    /* Ensure clickable area */
-    #gift-guide-{{ section.id }} .hb-inner > .hb-left,
-    #gift-guide-{{ section.id }} .hb-inner > .hb-right {
-      display:flex;
-      align-items:center;
-      gap:12px;
+    #gift-guide-{{ section.id }} .hb-mobile-inner { max-width: var(--gg-max-w); margin: 0 auto; }
+
+    #gift-guide-{{ section.id }} .hb-mobile-tagline { font-size:16px; margin-bottom:18px; color:var(--gg-text); }
+
+    #gift-guide-{{ section.id }} .hb-choose-mobile {
+      display:inline-block;
+      width:100%;
+      text-align:center;
+      padding:14px 18px;
+      border-radius:8px;
+      background: var(--gg-yellow);
+      color: #111;
+      font-weight:700;
+      text-decoration:none;
+      border:1px solid rgba(0,0,0,0.06);
     }
+    #gift-guide-{{ section.id }} .hb-choose-mobile:hover { background: var(--gg-black); color: var(--gg-yellow); box-shadow:none; transform:none; }
 
-    /* ---------- Announcement bar ---------- */
-    #gift-guide-{{ section.id }} .gg-announcement { width:100%; background: {{ section.settings.announcement_bg | default: '#efefef' }}; border-bottom:1px solid rgba(0,0,0,.04); }
-    #gift-guide-{{ section.id }} .gg-announcement__inner { max-width:var(--gg-max-w); margin:0 auto; padding:10px 16px; display:grid; grid-template-columns:1fr auto; align-items:center; gap:12px; font-size:14px; }
-    #gift-guide-{{ section.id }} .gg-announcement__text { text-align:center; opacity:.9; }
+    /* ---------- ANNOUNCEMENT BAR ---------- */
+    #gift-guide-{{ section.id }} .gg-announcement { width:100%; background: {{ section.settings.announcement_bg | default: '#efefef' }}; }
+    #gift-guide-{{ section.id }} .gg-announcement__inner { max-width:var(--gg-max-w); margin:0 auto; padding:10px 16px; display:flex; justify-content:center; align-items:center; font-size:14px; }
+    #gift-guide-{{ section.id }} .gg-announcement__text { text-align:center; }
 
-    /* ---------- HERO (desktop + mobile variants) ---------- */
+    /* ---------- HERO ---------- */
     #gift-guide-{{ section.id }} .gg-wrap { position: relative; max-width: var(--gg-max-w); margin: 0 auto; }
-    #gift-guide-{{ section.id }} .gg-content { position: relative; z-index: 2; padding: 24px 16px 0; max-width: 720px; }
+    #gift-guide-{{ section.id }} .gg-content { position: relative; z-index: 2; padding: 20px 16px 0; max-width: 720px; }
+    /* desktop heading */
     #gift-guide-{{ section.id }} .gg-heading { font-size: clamp(36px, 5.2vw, 84px); line-height: .95; font-weight:700; color:var(--gg-text); margin:0 0 12px; }
-    #gift-guide-{{ section.id }} .gg-heading--mobile { display:none; font-size: 28px; line-height:1.05; font-weight:700; margin:0 0 8px; }
-    #gift-guide-{{ section.id }} .gg-subtext { font-size: clamp(14px, 1.5vw, 18px); line-height:1.6; max-width:620px; color:var(--gg-text); }
-    #gift-guide-{{ section.id }} .gg-subtext--mobile { display:none; font-size:15px; margin-top:6px; }
+    /* mobile heading */
+    #gift-guide-{{ section.id }} .gg-heading--mobile { display:none; font-size:28px; line-height:1.05; font-weight:700; margin:6px 0 8px; }
+    /* subtext - no border per request */
+    #gift-guide-{{ section.id }} .gg-subtext { font-size: clamp(14px, 1.5vw, 18px); line-height:1.6; max-width:620px; color:var(--gg-text); margin:0; }
 
-    #gift-guide-{{ section.id }} .gg-cta { margin-top:22px; display:inline-flex; align-items:center; gap:14px; background:#000; color:#fff; text-decoration:none; padding:16px 34px; border-radius:8px; border:2px solid #000; font-weight:700; transition: transform .2s ease, box-shadow .2s ease; }
-    #gift-guide-{{ section.id }} .gg-cta:hover { transform: translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.25); }
-    #gift-guide-{{ section.id }} .gg-cta--mobile { position:absolute; left:50%; bottom:18px; transform:translateX(-50%); display:none; padding:14px 44px; border-radius:8px; font-weight:700; }
+    /* CTA styles */
+    /* desktop CTA slightly wider */
+    #gift-guide-{{ section.id }} .gg-cta {
+      margin-top:20px;
+      display:inline-flex; align-items:center; gap:14px;
+      background: var(--gg-black); color:#fff; text-decoration:none;
+      padding:16px 40px; border-radius:10px; border:2px solid var(--gg-black); font-weight:700;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    #gift-guide-{{ section.id }} .gg-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,0,0,.18); }
+
+    /* mobile CTA inside banner - centered bottom, wider, no hover transform */
+    #gift-guide-{{ section.id }} .gg-cta--mobile {
+      position:absolute; left:50%; bottom:20px; transform:translateX(-50%); display:none;
+      padding:16px 56px; border-radius:12px; background:var(--gg-black); color:#fff; font-weight:700; text-decoration:none;
+      border:2px solid var(--gg-black);
+    }
     #gift-guide-{{ section.id }} .gg-cta--mobile:hover { transform:none; box-shadow:none; }
 
+    /* hero media */
     #gift-guide-{{ section.id }} .gg-hero { position:relative; margin:0 auto; padding:0 16px 0; }
     #gift-guide-{{ section.id }} .gg-hero__media { position:relative; width:100%; height:560px; overflow:hidden; }
-    #gift-guide-{{ section.id }} .gg-hero__media img { width:100%; height:100%; object-fit:cover; object-position:center; }
+    #gift-guide-{{ section.id }} .gg-hero__media img { width:100%; height:100%; object-fit:cover; object-position:center; display:block; }
 
     /* Bottom strip */
-    #gift-guide-{{ section.id }} .gg-strip { width:100%; border-top:1px solid #111; border-bottom:1px solid #111; background:#f7f7f7; }
+    #gift-guide-{{ section.id }} .gg-strip { width:100%; background:#f7f7f7; border-top:1px solid rgba(0,0,0,.08); border-bottom:1px solid rgba(0,0,0,.08); }
     #gift-guide-{{ section.id }} .gg-strip__inner { max-width:var(--gg-max-w); margin:0 auto; padding:10px 16px; text-align:center; font-size:12px; letter-spacing:.08em; font-weight:600; }
 
+    /* ---------- LAYOUT RULES ---------- */
     /* Desktop layout */
     @media (min-width: 990px) {
-      /* show desktop logo left */
-      #gift-guide-{{ section.id }} .hb-inner { align-items:center; }
-      #gift-guide-{{ section.id }} .hb-left { order: 1; }
-      #gift-guide-{{ section.id }} .hb-right { order: 3; }
-      #gift-guide-{{ section.id }} .hb-logo { text-align:left; }
-      #gift-guide-{{ section.id }} .hb-tagline--desktop { display:block; }
-      #gift-guide-{{ section.id }} .hb-hamburger { display:none; }
-      #gift-guide-{{ section.id }} .hb-mobile-menu { display:none !important; }
+      /* header desktop: logo left, tagline center, choose right, no hamburger */
+      #gift-guide-{{ section.id }} .hb-left { display:flex; order:1; }
+      #gift-guide-{{ section.id }} .hb-tagline--desktop { display:block; order:2; }
+      #gift-guide-{{ section.id }} .hb-right { display:flex; order:3; }
 
-      /* HERO overlay bottom-left */
-      #gift-guide-{{ section.id }} .gg-wrap { padding: 24px 0 28px; }
-      #gift-guide-{{ section.id }} .gg-content { position:absolute; left:16px; bottom:40px; }
-      #gift-guide-{{ section.id }} .gg-hero__media { height:680px; }
-
-      /* desktop: hide mobile heading/subtext */
+      /* content pinned bottom-left over hero */
+      #gift-guide-{{ section.id }} .gg-wrap { padding: 28px 0 28px; }
+      #gift-guide-{{ section.id }} .gg-content { position:absolute; left:24px; bottom:40px; }
+      #gift-guide-{{ section.id }} .gg-hero__media { height:720px; }
+      /* hide mobile variants */
       #gift-guide-{{ section.id }} .gg-heading--mobile { display:none !important; }
       #gift-guide-{{ section.id }} .gg-subtext--mobile { display:none !important; }
+      #gift-guide-{{ section.id }} .gg-cta--mobile { display:none !important; }
     }
 
     /* Mobile layout */
     @media (max-width: 989px) {
-      /* center logo, hamburger on right */
-      #gift-guide-{{ section.id }} .hb-inner { justify-content: center; }
-      #gift-guide-{{ section.id }} .hb-left { display:none; } /* left desktop-only slot removed */
-      #gift-guide-{{ section.id }} .hb-right { display:none; } /* desktop choose hidden */
-      #gift-guide-{{ section.id }} .hb-hamburger { display:inline-flex; position:absolute; right:12px; top:10px; }
-      #gift-guide-{{ section.id }} .hb-logo { text-align:center; }
+      /* header: logo centered, hamburger left, hide desktop choose/tagline */
+      #gift-guide-{{ section.id }} .hb-inner { justify-content:center; padding: 12px 16px; }
+      #gift-guide-{{ section.id }} .hb-hamburger { display:inline-flex; position:absolute; left:12px; top:12px; }
+      #gift-guide-{{ section.id }} .hb-left { display:block; order:2; }
+      #gift-guide-{{ section.id }} .hb-right { display:none; }
       #gift-guide-{{ section.id }} .hb-tagline--desktop { display:none; }
 
-      /* show mobile heading/subtext, hide desktop ones */
-      #gift-guide-{{ section.id }} .gg-heading--mobile { display:block; text-align:center; }
-      #gift-guide-{{ section.id }} .gg-subtext--mobile { display:block; text-align:center; }
+      /* hero: mobile heading/subtext visible above banner (content not overlay) */
+      #gift-guide-{{ section.id }} .gg-content { position: static; padding:18px 16px 8px; text-align:center; }
       #gift-guide-{{ section.id }} .gg-heading { display:none; }
       #gift-guide-{{ section.id }} .gg-subtext { display:none; }
+      #gift-guide-{{ section.id }} .gg-heading--mobile { display:block; }
+      #gift-guide-{{ section.id }} .gg-subtext--mobile { display:block; margin-bottom:6px; }
 
-      #gift-guide-{{ section.id }} .gg-content { padding: 16px; text-align:center; position: static; }
+      /* hero image size */
       #gift-guide-{{ section.id }} .gg-hero__media { height:420px; }
+
+      /* show mobile CTA inside banner */
       #gift-guide-{{ section.id }} .gg-cta { display:none; }
       #gift-guide-{{ section.id }} .gg-cta--mobile { display:inline-flex; }
     }
+
   {%- endstyle -%}
 
   <!-- HEADER -->
-  <div class="hb">
-    <div class="hb-inner">
-      <!-- left slot (desktop only placeholder for spacing) -->
-      <div class="hb-left" aria-hidden="true" style="display:flex; align-items:center; gap:12px;">
+  <div class="hb" role="banner">
+    <div class="hb-inner" role="navigation" aria-label="Gift header">
+      <!-- Left slot (desktop logo) -->
+      <div class="hb-left" aria-hidden="true">
         <div class="hb-logo">{{ section.settings.logo_text }}</div>
       </div>
 
-      <!-- center tagline (desktop) -->
+      <!-- Center tagline (desktop) -->
       <div class="hb-tagline--desktop" aria-hidden="true">{{ section.settings.tagline_text }}</div>
 
-      <!-- right slot: choose button (desktop) -->
-      <div class="hb-right">
+      <!-- Right slot: choose button (desktop) -->
+      <div class="hb-right" aria-hidden="true">
         {%- if section.settings.choose_btn_label != blank -%}
           <a class="hb-choose" href="{{ section.settings.choose_btn_link }}" aria-label="{{ section.settings.choose_btn_label }}">
             <span>{{ section.settings.choose_btn_label }}</span>
@@ -200,40 +224,33 @@
         {%- endif -%}
       </div>
 
-      <!-- Mobile hamburger (shown on mobile) -->
+      <!-- Mobile hamburger (left on mobile) -->
       <button class="hb-hamburger" id="hbHamburger-{{ section.id }}" aria-controls="hbMobileMenu-{{ section.id }}" aria-expanded="false" aria-label="Open menu" type="button">
         <span id="hbHamburgerIcon-{{ section.id }}">☰</span>
       </button>
     </div>
 
-    <!-- Mobile menu (tagline + choose button inside) -->
+    <!-- Mobile overlay menu (tagline + choose button inside) -->
     <div class="hb-mobile-menu" id="hbMobileMenu-{{ section.id }}" aria-hidden="true">
-      <div class="hb-tagline">{{ section.settings.tagline_text }}</div>
-      {%- if section.settings.choose_btn_label != blank -%}
-        <div style="margin-top:8px;">
-          <a class="hb-choose" href="{{ section.settings.choose_btn_link }}" aria-label="{{ section.settings.choose_btn_label }}">
-            <span>{{ section.settings.choose_btn_label }}</span>
-          </a>
-        </div>
-      {%- endif -%}
+      <div class="hb-mobile-inner">
+        <div class="hb-mobile-tagline">{{ section.settings.tagline_text }}</div>
+        {%- if section.settings.choose_btn_label != blank -%}
+          <a class="hb-choose-mobile" href="{{ section.settings.choose_btn_link }}" aria-label="{{ section.settings.choose_btn_label }}">{{ section.settings.choose_btn_label }}</a>
+        {%- endif -%}
+      </div>
     </div>
   </div>
 
-  <!-- Optional announcement bar -->
+  <!-- Announcement bar (optional) -->
   <div class="gg-announcement" {% if section.settings.hide_announcement %}style="display:none"{% endif %}>
     <div class="gg-announcement__inner">
       <div class="gg-announcement__text">{{ section.settings.announcement_text }}</div>
-      {%- if section.settings.choose_btn_label != blank -%}
-        <a class="gg-choose" href="{{ section.settings.choose_btn_link }}" aria-label="{{ section.settings.choose_btn_label }}">
-          <span>{{ section.settings.choose_btn_label }}</span>
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 12h12m0 0-5-5m5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-      {%- endif -%}
     </div>
   </div>
 
-  <!-- HERO WRAP (unchanged) -->
+  <!-- HERO WRAP -->
   <div class="gg-wrap">
+    <!-- Content: desktop overlay bottom-left, mobile static above banner -->
     <div class="gg-content">
       <!-- Desktop heading/subtext -->
       <h2 class="gg-heading">{{ section.settings.heading }}</h2>
@@ -243,14 +260,15 @@
       <h2 class="gg-heading--mobile">{{ section.settings.mobile_heading }}</h2>
       <div class="gg-subtext--mobile">{{ section.settings.mobile_subtext }}</div>
 
+      <!-- Desktop CTA (hidden on mobile) -->
       {%- if section.settings.cta_label != blank -%}
-        <a class="gg-cta" href="{{ section.settings.cta_link }}">
-          <span>{{ section.settings.cta_label }}</span>
-          <svg class="gg-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M6 12h12m0 0-5-5m5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <a class="gg-cta" href="{{ section.settings.cta_link }}">{{ section.settings.cta_label }}
+          <svg class="gg-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M6 12h12m0 0-5-5m5 5-5 5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
       {%- endif -%}
     </div>
 
+    <!-- Hero image -->
     <div class="gg-hero">
       <div class="gg-hero__frame">
         <div class="gg-hero__media">
@@ -259,10 +277,12 @@
           {% else %}
             <img src="{{ 'placeholder-image.png' | asset_url }}" alt="" loading="lazy">
           {% endif %}
+
+          <!-- Mobile CTA inside banner (center bottom) -->
           {%- if section.settings.cta_label != blank -%}
-            <a class="gg-cta gg-cta--mobile" href="{{ section.settings.cta_link }}">
-              <span>{{ section.settings.cta_label }}</span>
-              <svg class="gg-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M6 12h12m0 0-5-5m5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <a class="gg-cta--mobile" href="{{ section.settings.cta_link }}">
+              {{ section.settings.cta_label }}
+              <svg class="gg-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M6 12h12m0 0-5-5m5 5-5 5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </a>
           {%- endif -%}
         </div>
@@ -270,18 +290,29 @@
     </div>
   </div>
 
+  <!-- Bottom strip (below banner) -->
   <div class="gg-strip">
     <div class="gg-strip__inner">{{ section.settings.bottom_strip_text }}</div>
   </div>
 
   {%- javascript -%}
     (function() {
-      function initGiftHeader() {
-        var hamburger = document.getElementById('hbHamburger-{{ section.id }}');
-        var icon = document.getElementById('hbHamburgerIcon-{{ section.id }}');
-        var menu = document.getElementById('hbMobileMenu-{{ section.id }}');
+      var hid = '{{ section.id }}';
+      var hamburgerId = 'hbHamburger-{{ section.id }}';
+      var menuId = 'hbMobileMenu-{{ section.id }}';
+      var iconId = 'hbHamburgerIcon-{{ section.id }}';
 
+      function initGiftHeader() {
+        var hamburger = document.getElementById(hamburgerId);
+        var menu = document.getElementById(menuId);
+        var icon = document.getElementById(iconId);
         if (!hamburger || !menu) return;
+
+        // ensure clickable and above other elements
+        try {
+          hamburger.style.pointerEvents = 'auto';
+          hamburger.style.zIndex = '9999';
+        } catch(e){}
 
         function openMenu() {
           menu.classList.add('open');
@@ -289,6 +320,9 @@
           hamburger.setAttribute('aria-expanded','true');
           menu.setAttribute('aria-hidden','false');
           if (icon) icon.textContent = '✕';
+          // lock scroll
+          document.documentElement.style.overflow = 'hidden';
+          document.body.style.overflow = 'hidden';
         }
         function closeMenu() {
           menu.classList.remove('open');
@@ -296,25 +330,34 @@
           hamburger.setAttribute('aria-expanded','false');
           menu.setAttribute('aria-hidden','true');
           if (icon) icon.textContent = '☰';
+          document.documentElement.style.overflow = '';
+          document.body.style.overflow = '';
         }
 
-        // Toggle on click
+        // Toggle
         hamburger.addEventListener('click', function(e) {
           e.preventDefault();
           if (menu.classList.contains('open')) closeMenu(); else openMenu();
         });
 
-        // Close on resize to desktop
-        window.addEventListener('resize', function() {
-          if (window.innerWidth >= 990 && menu.classList.contains('open')) {
+        // Close when clicking a link inside menu (including CHOOSE GIFT)
+        menu.addEventListener('click', function(e) {
+          var a = e.target.closest && e.target.closest('a');
+          if (a) {
             closeMenu();
           }
         });
 
-        // Close when clicking any link inside menu (better UX)
-        menu.addEventListener('click', function(e) {
-          var target = e.target;
-          if (target && (target.tagName === 'A' || target.closest && target.closest('a'))) {
+        // Close on ESC
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && menu.classList.contains('open')) {
+            closeMenu();
+          }
+        });
+
+        // Close on resize to desktop
+        window.addEventListener('resize', function() {
+          if (window.innerWidth >= 990 && menu.classList.contains('open')) {
             closeMenu();
           }
         });
@@ -349,7 +392,7 @@
       { "type": "header", "content": "Hero" },
       { "type": "image_picker", "id": "bg_image", "label": "Background illustration (desktop & mobile)" },
       { "type": "text", "id": "heading", "label": "Hero heading (desktop)", "default": "The Gift Guide" },
-      { "type": "richtext", "id": "subtext", "label": "Hero subtext (desktop)", "default": "<p>Discover Joy: Your Ultimate Holiday Gift Destination.</p>" },
+      { "type": "richtext", "id": "subtext", "label": "Hero subtext (desktop)", "default": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>" },
 
       { "type": "text", "id": "mobile_heading", "label": "Hero heading (mobile)", "default": "Gift Box" },
       { "type": "text", "id": "mobile_subtext", "label": "Hero subtext (mobile)", "default": "Find the ideal gift for your loved ones." },
