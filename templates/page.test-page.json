@@ -46,10 +46,66 @@
         "bottom_strip_text_mobile": "SUSTAINABLE, ETHICALLY MADE CLOTHES",
         "section_bg": "#ffffff"
       }
+    },
+    "hotspot_products_MxcK3F": {
+      "type": "hotspot-products",
+      "blocks": {
+        "product_HJi98e": {
+          "type": "product",
+          "settings": {
+            "product": "black-leather-bag"
+          }
+        },
+        "product_yDUicX": {
+          "type": "product",
+          "settings": {
+            "product": "blue-silk-tuxedo"
+          }
+        },
+        "product_hGWqNb": {
+          "type": "product",
+          "settings": {
+            "product": "chequered-red-shirt"
+          }
+        },
+        "product_mdCapR": {
+          "type": "product",
+          "settings": {
+            "product": "classic-leather-jacket"
+          }
+        },
+        "product_EyTpLK": {
+          "type": "product",
+          "settings": {
+            "product": "classic-varsity-top"
+          }
+        },
+        "product_WdzEnV": {
+          "type": "product",
+          "settings": {
+            "product": "dark-denim-top"
+          }
+        }
+      },
+      "block_order": [
+        "product_HJi98e",
+        "product_yDUicX",
+        "product_hGWqNb",
+        "product_mdCapR",
+        "product_EyTpLK",
+        "product_WdzEnV"
+      ],
+      "name": "Hotspot Products",
+      "settings": {
+        "heading": "Tisso vision in the wild",
+        "columns_desktop": 3,
+        "columns_mobile": 2
+      }
     }
   },
   "order": [
     "main",
-    "gift_guide_banner_cheDrb"
+    "gift_guide_banner_cheDrb",
+    "hotspot_products_MxcK3F"
   ]
 }
