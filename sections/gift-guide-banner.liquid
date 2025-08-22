@@ -11,7 +11,7 @@
   assign sec = section
 %}
 
-<section id="gift-guide-{{ section.id }}" class="gift-guide-section">
+<section id="gift-guide-{{ section.id }}" data-section-id="{{ section.id }}" class="gift-guide-section">
   {%- style -%}
     /* ---------- VARIABLES ---------- */
     #gift-guide-{{ section.id }} {
@@ -295,165 +295,178 @@
     <div class="gg-strip__inner">{{ section.settings.bottom_strip_text }}</div>
   </div>
 
-{%- javascript -%}
-  (function() {
-    var hamburgerId = 'hbHamburger-{{ section.id }}';
-    var menuId = 'hbMobileMenu-{{ section.id }}';
-    var iconId = 'hbHamburgerIcon-{{ section.id }}';
-    var initializedFlag = 'data-gift-hamburger-initialized-{{ section.id }}';
-
-    function safeGet(id) {
-      try { return document.getElementById(id); } catch (e) { return null; }
-    }
-
-    function lockScroll(lock) {
-      try {
-        document.documentElement.style.overflow = lock ? 'hidden' : '';
-        document.body.style.overflow = lock ? 'hidden' : '';
-      } catch (e) {}
-    }
-
-    function bindOnce(hamburger, menu, icon) {
-      if (!hamburger || !menu) return;
-
-      // avoid double-binding across theme editor reloads
-      if (hamburger.getAttribute(initializedFlag) === '1') return;
-      hamburger.setAttribute(initializedFlag, '1');
-
-      // ensure clickable even if overlapped
-      try {
-        hamburger.style.pointerEvents = 'auto';
-        hamburger.style.zIndex = '99999';
-      } catch (e) {}
-
-      function openMenu() {
-        menu.classList.add('open');
-        hamburger.classList.add('is-open');
-        hamburger.setAttribute('aria-expanded','true');
-        menu.setAttribute('aria-hidden','false');
-        if (icon) icon.textContent = '✕';
-        lockScroll(true);
-      }
-      function closeMenu() {
-        menu.classList.remove('open');
-        hamburger.classList.remove('is-open');
-        hamburger.setAttribute('aria-expanded','false');
-        menu.setAttribute('aria-hidden','true');
-        if (icon) icon.textContent = '☰';
-        lockScroll(false);
-      }
-      function toggleMenu(e) {
-        if (e) e.preventDefault();
-        if (menu.classList.contains('open')) closeMenu(); else openMenu();
-      }
-
-      // Use click and touchstart (touchstart for faster mobile response)
-      hamburger.addEventListener('click', toggleMenu, { passive: false });
-      hamburger.addEventListener('touchstart', function(e){
-        // prevent double-firing: touchstart then click
-        e.preventDefault();
-        toggleMenu();
-      }, { passive: false });
-
-      // close when clicking a link inside menu
-      menu.addEventListener('click', function(e) {
-        var a = e.target.closest && e.target.closest('a');
-        if (a) closeMenu();
-      });
-
-      // close on ESC
-      document.addEventListener('keydown', function(e) {
-        if ((e.key === 'Escape' || e.key === 'Esc') && menu.classList.contains('open')) closeMenu();
-      });
-
-      // close on resize >= desktop
-      window.addEventListener('resize', function() {
-        if (window.innerWidth >= 990 && menu.classList.contains('open')) closeMenu();
-      });
-    }
-
-    function initOnce() {
-      var hamburger = safeGet(hamburgerId);
-      var menu = safeGet(menuId);
-      var icon = safeGet(iconId);
-
-      if (hamburger && menu) {
-        bindOnce(hamburger, menu, icon);
-        return true;
-      }
-      return false;
-    }
-
-    // Try immediate init
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function() {
-        if (!initOnce()) observeForElements();
-      });
-    } else {
-      if (!initOnce()) observeForElements();
-    }
-
-    // MutationObserver fallback for editors that inject elements later
-    function observeForElements() {
-      var observer;
-      var attempts = 0;
-      observer = new MutationObserver(function(mutations) {
-        if (initOnce() || attempts > 40) { // stop after ~40 ticks (~2s)
-          try { observer.disconnect(); } catch(e){}
-          return;
-        }
-        attempts++;
-      });
-      try {
-        observer.observe(document.documentElement || document, { childList: true, subtree: true });
-      } catch (e) {
-        // final fallback: interval
-        var interval = setInterval(function() {
-          if (initOnce()) clearInterval(interval);
-        }, 150);
-        setTimeout(function(){ clearInterval(interval); }, 3000);
-      }
-    }
-  })();
-{%- endjavascript -%}
-
-
-  {%- schema -%}
-  {
-    "name": "Gift Guide Banner",
-    "settings": [
-      { "type": "text", "id": "logo_text", "label": "Logo text", "default": "TISSO VISION" },
-      { "type": "text", "id": "tagline_text", "label": "Header tagline", "default": "Find the ideal gift for your loved ones." },
-      { "type": "url", "id": "choose_btn_link", "label": "Choose Gift Button Link", "default": "/" },
-
-      { "type": "text", "id": "choose_btn_label", "label": "Choose button label", "default": "CHOOSE GIFT" },
-      { "type": "color", "id": "choose_btn_bg", "label": "Choose button color (yellow)", "default": "#FFE34D" },
-      { "type": "color", "id": "header_bg", "label": "Header background color", "default": "#ffffff" },
-      { "type": "color", "id": "text_color", "label": "Header / section text color", "default": "#111111" },
-
-      { "type": "header", "content": "Announcement (optional)" },
-      { "type": "checkbox", "id": "hide_announcement", "label": "Hide announcement bar", "default": true },
-      { "type": "text", "id": "announcement_text", "label": "Announcement text", "default": "Find the ideal gift for your loved ones." },
-      { "type": "color", "id": "announcement_bg", "label": "Announcement background", "default": "#efefef" },
-
-      { "type": "header", "content": "Hero" },
-      { "type": "image_picker", "id": "bg_image", "label": "Background illustration (desktop & mobile)" },
-      { "type": "text", "id": "heading", "label": "Hero heading (desktop)", "default": "The Gift Guide" },
-      { "type": "richtext", "id": "subtext", "label": "Hero subtext (desktop)", "default": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>" },
-
-      { "type": "text", "id": "mobile_heading", "label": "Hero heading (mobile)", "default": "Gift Box" },
-      { "type": "text", "id": "mobile_subtext", "label": "Hero subtext (mobile)", "default": "Find the ideal gift for your loved ones." },
-
-      { "type": "text", "id": "cta_label", "label": "Hero CTA label", "default": "SHOP NOW" },
-      { "type": "url", "id": "cta_link", "label": "Hero CTA link", "default": "/" },
-
-      { "type": "header", "content": "Bottom strip" },
-      { "type": "text", "id": "bottom_strip_text", "label": "Bottom strip text", "default": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL" },
-
-      { "type": "color", "id": "section_bg", "label": "Section background", "default": "#ffffff" }
-    ],
-    "blocks": [],
-    "presets": [ { "name": "Gift Guide Banner" } ]
-  }
-  {%- endschema -%}
 </section>
+
+<!-- Static JS: no Liquid inside this script tag (reads section id via data attribute) -->
+<script>
+(function(){
+  'use strict';
+
+  // read section id from nearest section element's data attribute
+  var root = document.currentScript && document.currentScript.previousElementSibling;
+  // fallback: query by a known attribute if necessary
+  if (!root || !root.dataset || !root.dataset.sectionId) {
+    // try to find a section element that has id starting with "gift-guide-"
+    var secs = document.querySelectorAll('[id^="gift-guide-"]');
+    root = secs && secs[secs.length - 1] ? secs[secs.length - 1] : document.body;
+  }
+  var sectionId = (root && root.dataset && root.dataset.sectionId) ? root.dataset.sectionId : null;
+  if (!sectionId) return;
+
+  var hamburgerId = 'hbHamburger-' + sectionId;
+  var menuId = 'hbMobileMenu-' + sectionId;
+  var iconId = 'hbHamburgerIcon-' + sectionId;
+  var initializedFlag = 'data-gift-hamburger-initialized-' + sectionId;
+
+  function safeGet(id) {
+    try { return document.getElementById(id); } catch (e) { return null; }
+  }
+
+  function lockScroll(lock) {
+    try {
+      document.documentElement.style.overflow = lock ? 'hidden' : '';
+      document.body.style.overflow = lock ? 'hidden' : '';
+    } catch (e) {}
+  }
+
+  function bindOnce(hamburger, menu, icon) {
+    if (!hamburger || !menu) return;
+
+    // avoid double-binding across theme editor reloads
+    if (hamburger.getAttribute(initializedFlag) === '1') return;
+    hamburger.setAttribute(initializedFlag, '1');
+
+    // ensure clickable even if overlapped
+    try {
+      hamburger.style.pointerEvents = 'auto';
+      hamburger.style.zIndex = '99999';
+    } catch (e) {}
+
+    function openMenu() {
+      menu.classList.add('open');
+      hamburger.classList.add('is-open');
+      hamburger.setAttribute('aria-expanded','true');
+      menu.setAttribute('aria-hidden','false');
+      if (icon) icon.textContent = '✕';
+      lockScroll(true);
+    }
+    function closeMenu() {
+      menu.classList.remove('open');
+      hamburger.classList.remove('is-open');
+      hamburger.setAttribute('aria-expanded','false');
+      menu.setAttribute('aria-hidden','true');
+      if (icon) icon.textContent = '☰';
+      lockScroll(false);
+    }
+    function toggleMenu(e) {
+      if (e) e.preventDefault();
+      if (menu.classList.contains('open')) closeMenu(); else openMenu();
+    }
+
+    // Use click and touchstart (touchstart for faster mobile response)
+    hamburger.addEventListener('click', toggleMenu, { passive: false });
+    hamburger.addEventListener('touchstart', function(e){
+      // prevent double-firing: touchstart then click
+      e.preventDefault();
+      toggleMenu();
+    }, { passive: false });
+
+    // close when clicking a link inside menu
+    menu.addEventListener('click', function(e) {
+      var a = e.target.closest && e.target.closest('a');
+      if (a) closeMenu();
+    });
+
+    // close on ESC
+    document.addEventListener('keydown', function(e) {
+      if ((e.key === 'Escape' || e.key === 'Esc') && menu.classList.contains('open')) closeMenu();
+    });
+
+    // close on resize >= desktop
+    window.addEventListener('resize', function() {
+      if (window.innerWidth >= 990 && menu.classList.contains('open')) closeMenu();
+    });
+  }
+
+  function initOnce() {
+    var hamburger = safeGet(hamburgerId);
+    var menu = safeGet(menuId);
+    var icon = safeGet(iconId);
+
+    if (hamburger && menu) {
+      bindOnce(hamburger, menu, icon);
+      return true;
+    }
+    return false;
+  }
+
+  function observeForElements() {
+    var observer;
+    var attempts = 0;
+    observer = new MutationObserver(function(mutations) {
+      if (initOnce() || attempts > 40) {
+        try { observer.disconnect(); } catch(e){}
+        return;
+      }
+      attempts++;
+    });
+    try {
+      observer.observe(document.documentElement || document, { childList: true, subtree: true });
+    } catch (e) {
+      // final fallback: interval
+      var interval = setInterval(function() {
+        if (initOnce()) clearInterval(interval);
+      }, 150);
+      setTimeout(function(){ clearInterval(interval); }, 3000);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      if (!initOnce()) observeForElements();
+    });
+  } else {
+    if (!initOnce()) observeForElements();
+  }
+
+})();
+</script>
+
+{%- schema -%}
+{
+  "name": "Gift Guide Banner",
+  "settings": [
+    { "type": "text", "id": "logo_text", "label": "Logo text", "default": "TISSO VISION" },
+    { "type": "text", "id": "tagline_text", "label": "Header tagline", "default": "Find the ideal gift for your loved ones." },
+    { "type": "url", "id": "choose_btn_link", "label": "Choose Gift Button Link", "default": "/" },
+
+    { "type": "text", "id": "choose_btn_label", "label": "Choose button label", "default": "CHOOSE GIFT" },
+    { "type": "color", "id": "choose_btn_bg", "label": "Choose button color (yellow)", "default": "#FFE34D" },
+    { "type": "color", "id": "header_bg", "label": "Header background color", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Header / section text color", "default": "#111111" },
+
+    { "type": "header", "content": "Announcement (optional)" },
+    { "type": "checkbox", "id": "hide_announcement", "label": "Hide announcement bar", "default": true },
+    { "type": "text", "id": "announcement_text", "label": "Announcement text", "default": "Find the ideal gift for your loved ones." },
+    { "type": "color", "id": "announcement_bg", "label": "Announcement background", "default": "#efefef" },
+
+    { "type": "header", "content": "Hero" },
+    { "type": "image_picker", "id": "bg_image", "label": "Background illustration (desktop & mobile)" },
+    { "type": "text", "id": "heading", "label": "Hero heading (desktop)", "default": "The Gift Guide" },
+    { "type": "richtext", "id": "subtext", "label": "Hero subtext (desktop)", "default": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>" },
+
+    { "type": "text", "id": "mobile_heading", "label": "Hero heading (mobile)", "default": "Gift Box" },
+    { "type": "text", "id": "mobile_subtext", "label": "Hero subtext (mobile)", "default": "Find the ideal gift for your loved ones." },
+
+    { "type": "text", "id": "cta_label", "label": "Hero CTA label", "default": "SHOP NOW" },
+    { "type": "url", "id": "cta_link", "label": "Hero CTA link", "default": "/" },
+
+    { "type": "header", "content": "Bottom strip" },
+    { "type": "text", "id": "bottom_strip_text", "label": "Bottom strip text", "default": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL" },
+
+    { "type": "color", "id": "section_bg", "label": "Section background", "default": "#ffffff" }
+  ],
+  "blocks": [],
+  "presets": [ { "name": "Gift Guide Banner" } ]
+}
+{%- endschema -%}
