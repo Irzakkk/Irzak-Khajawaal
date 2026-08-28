@@ -276,7 +276,7 @@
       <div class="gg-hero__frame">
         <div class="gg-hero__media">
           {% if section.settings.bg_image != blank %}
-            {%- render 'image', image: section.settings.bg_image, widths: '750,1100,1500,2000', sizes: '100vw', alt: section.settings.bg_image.alt | escape -%}
+            {%- render 'image', image: section.settings.bg_image, widths: '750,1100,1500,2000', sizes: '100vw', alt: section.settings.bg_image.alt -%}
           {% else %}
             <img src="{{ 'placeholder-image.png' | asset_url }}" alt="" loading="lazy">
           {% endif %}
@@ -419,3 +419,15 @@
   "presets": [ { "name": "Gift Guide Banner" } ]
 }
 {%- endschema -%}
+{% comment %}
+
+This file has been rewritten to preserve the original behavior.
+
+---
+Changes:
+- from: "{%- render 'image', image: section.settings.bg_image, widths: '750,1100,1500,2000',
+    sizes: '100vw', alt: section.settings.bg_image.alt | escape -%}"
+  to: "{%- render 'image', image: section.settings.bg_image, widths: '750,1100,1500,2000',
+    sizes: '100vw', alt: section.settings.bg_image.alt -%}"
+  position: 14259..14397
+{% endcomment %}
