@@ -1,0 +1,288 @@
+{% schema %}
+{
+  "name": "Hotspot Products",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Section heading",
+      "default": "Hotspot Products"
+    },
+    {
+      "type": "number",
+      "id": "columns_desktop",
+      "label": "Desktop columns (3 recommended)",
+      "default": 3
+    },
+    {
+      "type": "number",
+      "id": "columns_mobile",
+      "label": "Mobile columns (2 recommended)",
+      "default": 2
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product",
+      "name": "Hotspot product",
+      "limit": 6,
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Select product"
+        },
+        {
+          "type": "image_picker",
+          "id": "override_image",
+          "label": "Override product image (optional)"
+        },
+        {
+          "type": "number",
+          "id": "hotspot_left",
+          "label": "Hotspot left (%)",
+          "default": 5
+        },
+        {
+          "type": "number",
+          "id": "hotspot_top",
+          "label": "Hotspot top (%)",
+          "default": 5
+        }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "Hotspot Products"
+    }
+  ]
+}
+{% endschema %}
+
+<section id="hotspot-products-{{ section.id }}" data-section-id="{{ section.id }}">
+<style>
+.hp-grid { display: grid; gap: 18px; grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 989px) { .hp-grid { grid-template-columns: repeat(2, 1fr); } }
+.hp-card { position: relative; background: #fff; }
+.hp-image { width: 100%; padding-bottom: 100%; background: #f5f5f5; position: relative; }
+.hp-image img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.hp-hotspot {
+  position: absolute; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.96);
+  border: 2px solid rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center;
+  cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; z-index: 20;
+}
+.hp-hotspot .hp-plus { font-size: 18px; font-weight: 700; color: #111; }
+.hp-modal {
+  position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.45); z-index: 2200; opacity: 0; transition: opacity 0.26s ease;
+  padding: 24px; overflow-y: auto;
+}
+.hp-modal.open { display: flex; opacity: 1; }
+.hp-modal__card {
+  background: #fff; border-radius: 10px; box-shadow: 0 28px 90px rgba(0,0,0,.12); max-width: 370px; width: 100%;
+  min-height: 540px; padding: 0; display: flex; flex-direction: column; position: relative;
+}
+.hp-modal-close {
+  position: absolute; top: 18px; right: 18px; background: transparent; border: none;
+  font-size: 25px; color: #111; font-weight: 500; cursor: pointer; z-index: 2000; line-height: 1;
+}
+.hp-top {
+  display: grid; grid-template-columns: 120px 1fr; gap: 20px; padding: 22px 22px 0 22px;
+  align-items: start;
+}
+.imgwrap { background: #f6f6f6; min-height: 120px; display: flex; align-items: center; justify-content: center; }
+.imgwrap img { width: 110px; height: 110px; object-fit: cover; display: block; }
+.hp-title { font-size: 18px; font-weight: 600; margin: 0 0 7px; color: #111; letter-spacing: 0.01em; line-height: 1.32; }
+.hp-price { font-size: 18px; font-weight: 400; margin-bottom: 6px; color: #111; letter-spacing: 0.01em; }
+.hp-desc { font-size: 13px; color: #222; margin-top: 0; line-height: 1.5; }
+.hp-controls {
+  padding: 18px 22px 22px 22px; border-top: 1px solid #eee; display: flex;
+  flex-direction: column; gap: 15px;
+}
+.label { font-weight: 500; margin-bottom: 7px; color: #222; font-size: 14px; line-height: 1.45; }
+.hp-color-wrap {
+  display: flex; border: 1.5px solid #222; border-radius: 0; background: #fff; min-height: 50px; overflow: hidden;
+}
+.hp-color {
+  flex: 1 0 0; display: flex; align-items: center; justify-content: center;
+  font-weight: 500; color: #111; font-size: 20px; border: none; border-right: 1.5px solid #222;
+  border-radius: 0; background: #fff; height: 50px; transition: background 0.15s, border-left 0.15s; cursor: pointer;
+}
+.hp-color:last-child { border-right: none; }
+.hp-color.selected { background: #fff; border-left: 4px solid #111; }
+.hp-size {
+  width: 100%; padding: 11px 13px; font-size: 16px; border: 1.5px solid #222;
+  border-radius: 0; background: #fff; color: #222; font-weight: 400; appearance: none; height: 44px;
+}
+.hp-size:focus { outline: 2px solid #222; }
+.hp-add {
+  background: #111; color: #fff; padding: 16px 0; font-weight: 600; width: 100%; border: none;
+  border-radius: 0; cursor: pointer; display: flex; flex-direction: row; justify-content: center;
+  align-items: center; gap: 8px; font-size: 20px; margin-top: 6px;
+}
+.hp-add::after {
+  content: "→"; margin-left: 8px; font-size: 21px; font-weight: 400;
+}
+</style>
+<div class="hp-inner">
+  <h2 class="hp-heading" style="display:none;">{{ section.settings.heading }}</h2>
+  <div class="hp-grid" id="hpGrid-{{ section.id }}">
+    {%- for block in section.blocks -%}
+      {%- assign prod_handle = block.settings.product -%}
+      {% if prod_handle != blank and all_products[prod_handle] %}
+        {% assign prod = all_products[prod_handle] %}
+      {% else %}
+        {% assign prod = nil %}
+      {% endif %}
+      <div class="hp-card" data-block-id="{{ block.id }}">
+        <div class="hp-image">
+          {% if block.settings.override_image != blank %}
+            <img src="{{ block.settings.override_image | img_url: '800x800' }}" alt="{{ prod.title }}">
+          {% elsif prod and prod.featured_image %}
+            <img src="{{ prod.featured_image | img_url: '800x800' }}" alt="{{ prod.title }}">
+          {% else %}
+            <img src="{{ 'placeholder-image.png' | asset_url }}" alt="">
+          {% endif %}
+        </div>
+        {% assign left_pct = block.settings.hotspot_left | default: 5 %}
+        {% assign top_pct = block.settings.hotspot_top | default: 5 %}
+        <button class="hp-hotspot" type="button" aria-label="Open product quick view" data-open-modal-id="hpModal-{{ block.id }}" style="left: {{ left_pct }}%; top: {{ top_pct }}%;">
+          <span class="hp-plus">+</span>
+        </button>
+        <div id="hpModal-{{ block.id }}" class="hp-modal" role="dialog" aria-hidden="true">
+          <div class="hp-modal__card" role="document">
+            <button class="hp-modal-close" aria-label="Close" data-close-modal-id="hpModal-{{ block.id }}">✕</button>
+            <div class="hp-top">
+              <div class="imgwrap">
+                {% if block.settings.override_image != blank %}
+                  <img src="{{ block.settings.override_image | img_url: '600x600' }}" alt="{{ prod.title }}">
+                {% elsif prod and prod.featured_image %}
+                  <img src="{{ prod.featured_image | img_url: '600x600' }}" alt="{{ prod.title }}">
+                {% else %}
+                  <img src="{{ 'placeholder-image.png' | asset_url }}" alt="No image">
+                {% endif %}
+              </div>
+              <div class="hp-top-text">
+                {% if prod %}
+                  <h3 class="hp-title">{{ prod.title }}</h3>
+                  <div class="hp-price" data-price-target>
+                    {% assign first_variant = prod.variants.first %}
+                    {{ first_variant.price | money }}
+                  </div>
+                  <div class="hp-desc">{{ prod.description | strip_html | truncate: 130 }}</div>
+                {% else %}
+                  <h3 class="hp-title">No product selected</h3>
+                  <div class="hp-desc">Please select a product for this hotspot in the theme editor.</div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="hp-controls">
+              {% if prod %}
+                <span class="label">Color</span>
+                <div class="hp-color-wrap" data-color-index="0">
+                  <button type="button" class="hp-color" data-option-index="0" data-option-value="Black">Black</button>
+                  <button type="button" class="hp-color" data-option-index="0" data-option-value="White">White</button>
+                </div>
+                <span class="label">Size</span>
+                <div style="display:block;width:100%;">
+                  <select class="hp-size" data-size-index="1">
+                    <option value="">Choose your size</option>
+                    <option value="XS">XS</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                  </select>
+                </div>
+                <form method="post" action="/cart/add" class="hp-add-form" data-block="{{ block.id }}" novalidate>
+                  <input type="hidden" name="id" value="{{ first_variant.id }}" class="hp-variant-input" />
+                  <input type="hidden" name="quantity" value="1" />
+                  <div>
+                    <button type="submit" class="hp-add">ADD TO CART</button>
+                  </div>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {%- endfor -%}
+  </div>
+</div>
+<script>
+(function(){
+  'use strict';
+  var sectionRoot = document.querySelector('[id^="hotspot-products-"]');
+  if (!sectionRoot) return;
+
+  // Open modal
+  sectionRoot.addEventListener('click', function(e){
+    var btn = e.target.closest && e.target.closest('.hp-hotspot');
+    if (!btn) return;
+    e.preventDefault();
+    var modal = document.getElementById(btn.getAttribute('data-open-modal-id'));
+    if (!modal) return;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    var focus = modal.querySelector('select, button, input, a, textarea');
+    if (focus) focus.focus();
+  });
+
+  // Close modal
+  sectionRoot.addEventListener('click', function(e){
+    var close = e.target.closest && e.target.closest('[data-close-modal-id]');
+    if (close) {
+      var mid = close.getAttribute('data-close-modal-id');
+      var modal = document.getElementById(mid);
+      if (modal) {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden','true');
+        document.documentElement.style.overflow='';
+        document.body.style.overflow='';
+      }
+      return;
+    }
+    var overlay = e.target.closest && e.target.closest('.hp-modal.open');
+    if (overlay && e.target === overlay) {
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden','true');
+      document.documentElement.style.overflow='';
+      document.body.style.overflow='';
+    }
+  });
+
+  // Escape key closes modal
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      var opens = sectionRoot.querySelectorAll('.hp-modal.open');
+      opens.forEach(function(m){
+        m.classList.remove('open');
+        m.setAttribute('aria-hidden','true');
+      });
+      document.documentElement.style.overflow='';
+      document.body.style.overflow='';
+    }
+  });
+
+  // **Color selection**
+  sectionRoot.addEventListener('click', function(e){
+    var colorBtn = e.target.closest && e.target.closest('.hp-color');
+    if (!colorBtn) return;
+    var parent = colorBtn.closest('.hp-color-wrap');
+    if (!parent) return;
+
+    // Remove 'selected' from all siblings
+    parent.querySelectorAll('.hp-color').forEach(function(btn){
+      btn.classList.remove('selected');
+    });
+
+    // Add 'selected' to clicked button
+    colorBtn.classList.add('selected');
+  });
+})();
+</script>
+
+</section>

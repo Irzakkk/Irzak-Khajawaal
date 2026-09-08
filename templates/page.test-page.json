@@ -1,0 +1,123 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "disabled": true,
+      "settings": {
+        "content_direction": "column",
+        "gap": 32,
+        "color_scheme": "",
+        "padding-block-start": 40,
+        "padding-block-end": 80
+      }
+    },
+    "gift_guide_banner_cheDrb": {
+      "type": "gift-guide-banner",
+      "custom_css": [],
+      "name": "Gift Guide Banner",
+      "settings": {
+        "logo_text": "TISSO VISION",
+        "tagline_text": "Find the ideal gift for your ideal ones.",
+        "choose_btn_link": "",
+        "choose_btn_label": "THE CHOOSE GIFT",
+        "choose_btn_bg": "#ffe34d",
+        "header_bg": "#ffffff",
+        "text_color": "#111111",
+        "hide_announcement": true,
+        "announcement_text": "Find the ideal gift for your loved ones.",
+        "announcement_bg": "#efefef",
+        "bg_image": "shopify://shop_images/Group_1000008197.png",
+        "heading": "The Gift Guide",
+        "subtext": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>",
+        "mobile_heading": "The Gift Guide",
+        "mobile_subtext": "Find the ideal gift for your loved ones.",
+        "cta_label": "SHOP NOW",
+        "cta_link": "",
+        "bottom_strip_text": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL",
+        "bottom_strip_text_mobile": "SUSTAINABLE, ETHICALLY MADE CLOTHES",
+        "section_bg": "#ffffff"
+      }
+    },
+    "hotspot_products_MxcK3F": {
+      "type": "hotspot-products",
+      "blocks": {
+        "product_HJi98e": {
+          "type": "product",
+          "settings": {
+            "product": "black-leather-bag",
+            "hotspot_left": 50,
+            "hotspot_top": 70
+          }
+        },
+        "product_yDUicX": {
+          "type": "product",
+          "settings": {
+            "product": "blue-silk-tuxedo",
+            "hotspot_left": 80,
+            "hotspot_top": 50
+          }
+        },
+        "product_hGWqNb": {
+          "type": "product",
+          "settings": {
+            "product": "chequered-red-shirt",
+            "hotspot_left": 60,
+            "hotspot_top": 20
+          }
+        },
+        "product_mdCapR": {
+          "type": "product",
+          "settings": {
+            "product": "classic-leather-jacket",
+            "hotspot_left": 75,
+            "hotspot_top": 15
+          }
+        },
+        "product_EyTpLK": {
+          "type": "product",
+          "settings": {
+            "product": "classic-varsity-top",
+            "hotspot_left": 50,
+            "hotspot_top": 30
+          }
+        },
+        "product_WdzEnV": {
+          "type": "product",
+          "settings": {
+            "product": "dark-denim-top",
+            "hotspot_left": 70,
+            "hotspot_top": 40
+          }
+        }
+      },
+      "block_order": [
+        "product_HJi98e",
+        "product_yDUicX",
+        "product_hGWqNb",
+        "product_mdCapR",
+        "product_EyTpLK",
+        "product_WdzEnV"
+      ],
+      "name": "Hotspot Products",
+      "settings": {
+        "heading": "Tisso vision in the wild",
+        "columns_desktop": 3,
+        "columns_mobile": 2
+      }
+    }
+  },
+  "order": [
+    "main",
+    "gift_guide_banner_cheDrb",
+    "hotspot_products_MxcK3F"
+  ]
+}
